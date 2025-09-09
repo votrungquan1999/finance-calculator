@@ -34,15 +34,15 @@ import {
   type CalculatorState,
 } from "src/lib/url-state";
 
+import type { LoanPayment, InvestmentResult } from "src/lib/calculations";
+
 export interface TableColumn {
   key: string;
   label: string;
   type: "currency" | "percentage" | "number" | "text";
 }
 
-export interface TableData {
-  [key: string]: number | string;
-}
+export type TableData = LoanPayment | InvestmentResult;
 
 interface ResultsTableProps {
   title: string;
@@ -81,6 +81,20 @@ export function ResultsTable({
   const hasMoreData = data.length > maxVisibleRows;
 
   /**
+   * Get value from table data row using column key
+   */
+  const getTableValue = (
+    row: TableData,
+    key: string,
+  ): number | string | undefined => {
+    // Type-safe property access using keyof unions
+    if (key in row) {
+      return row[key as keyof TableData];
+    }
+    return undefined;
+  };
+
+  /**
    * Format cell value based on column type
    */
   const formatCellValue = (value: number | string, type: string): string => {
@@ -107,8 +121,9 @@ export function ResultsTable({
       .map((row) =>
         columns
           .map((col) => {
-            const value = row[col.key];
-            const formattedValue = formatCellValue(value, col.type);
+            const value = getTableValue(row, col.key);
+            const formattedValue =
+              value !== undefined ? formatCellValue(value, col.type) : "";
             // Escape commas and quotes in CSV
             return `"${String(formattedValue).replace(/"/g, '""')}"`;
           })
@@ -266,10 +281,13 @@ export function ResultsTable({
               {visibleData.map((row, rowIndex) => (
                 <TableRow key={`row-${rowIndex}-${row.month || rowIndex}`}>
                   {columns.map((column) => {
-                    const value = row[column.key];
+                    const value = getTableValue(row, column.key);
                     const isNumeric =
                       typeof value === "number" && column.type !== "text";
-                    const formattedValue = formatCellValue(value, column.type);
+                    const formattedValue =
+                      value !== undefined
+                        ? formatCellValue(value, column.type)
+                        : "";
 
                     return (
                       <TableCell

@@ -18,7 +18,6 @@ export interface InvestmentResult {
   totalContributions: number;
   totalInterest: number;
   totalValue: number;
-  [key: string]: number | string;
 }
 
 export interface LoanCalculationResult {
