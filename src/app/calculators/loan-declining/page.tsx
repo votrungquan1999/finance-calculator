@@ -13,13 +13,14 @@ import {
   hasUrlParameters,
   type CalculatorState,
 } from "src/lib/url-state";
+import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
 
 type CalculationMode = "by-term" | "by-payment";
 
 /**
- * Declining balance loan calculator page - calculates monthly payments with interest on remaining principal
+ * Declining balance loan calculator component - calculates monthly payments with interest on remaining principal
  */
-export default function DecliningBalanceLoanPage() {
+function DecliningBalanceLoanCalculator() {
   const [mode, setMode] = useState<CalculationMode>("by-term");
   const [result, setResult] = useState<LoanCalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -244,5 +245,16 @@ export default function DecliningBalanceLoanPage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Declining balance loan calculator page - calculates monthly payments with interest on remaining principal
+ */
+export default function DecliningBalanceLoanPage() {
+  return (
+    <CalculatorSuspenseWrapper>
+      <DecliningBalanceLoanCalculator />
+    </CalculatorSuspenseWrapper>
   );
 }

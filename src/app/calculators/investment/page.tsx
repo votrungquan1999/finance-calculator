@@ -46,11 +46,12 @@ import {
   type SavedValue,
 } from "src/contexts/saved-values-context";
 import { formatCurrency, formatPercentage } from "src/lib/calculations";
+import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
 
 /**
- * Recurring investment calculator page
+ * Recurring investment calculator component
  */
-export default function InvestmentPage() {
+function InvestmentCalculator() {
   const [result, setResult] = useState<InvestmentCalculationResult | null>(
     null,
   );
@@ -840,5 +841,16 @@ export default function InvestmentPage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Recurring investment calculator page
+ */
+export default function InvestmentPage() {
+  return (
+    <CalculatorSuspenseWrapper>
+      <InvestmentCalculator />
+    </CalculatorSuspenseWrapper>
   );
 }

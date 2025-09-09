@@ -10,14 +10,15 @@ import {
   hasUrlParameters,
   type CalculatorState,
 } from "src/lib/url-state";
+import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
 
 type CalculationMode = "by-term" | "by-payment";
 type LoanWithFeeResult = Awaited<ReturnType<typeof calculateLoanWithFee>>;
 
 /**
- * Loan with initial fee calculator page
+ * Loan with initial fee calculator component
  */
-export default function LoanWithFeePage() {
+function LoanWithFeeCalculator() {
   const [mode, setMode] = useState<CalculationMode>("by-term");
   const [result, setResult] = useState<LoanWithFeeResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -253,5 +254,16 @@ export default function LoanWithFeePage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Loan with initial fee calculator page
+ */
+export default function LoanWithFeePage() {
+  return (
+    <CalculatorSuspenseWrapper>
+      <LoanWithFeeCalculator />
+    </CalculatorSuspenseWrapper>
   );
 }

@@ -13,13 +13,14 @@ import {
   hasUrlParameters,
   type CalculatorState,
 } from "src/lib/url-state";
+import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
 
 type CalculationMode = "by-term" | "by-payment";
 
 /**
- * Equal monthly payment (annuity) loan calculator page
+ * Equal monthly payment (annuity) loan calculator component
  */
-export default function AnnuityLoanPage() {
+function AnnuityLoanCalculator() {
   const [mode, setMode] = useState<CalculationMode>("by-term");
   const [result, setResult] = useState<LoanCalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
@@ -228,5 +229,16 @@ export default function AnnuityLoanPage() {
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Equal monthly payment (annuity) loan calculator page
+ */
+export default function AnnuityLoanPage() {
+  return (
+    <CalculatorSuspenseWrapper>
+      <AnnuityLoanCalculator />
+    </CalculatorSuspenseWrapper>
   );
 }
