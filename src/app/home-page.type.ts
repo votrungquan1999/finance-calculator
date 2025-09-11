@@ -1,4 +1,4 @@
-interface CalculatorCard {
+export interface CalculatorCard {
   title: string;
   description: string;
   href: string;
@@ -6,9 +6,7 @@ interface CalculatorCard {
   features: string[];
 }
 
-interface FAQItem {
+export interface FAQItem {
   question: string;
   answer: string;
 }
-
-export type { CalculatorCard, FAQItem };
