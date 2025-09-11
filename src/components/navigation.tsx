@@ -1,14 +1,11 @@
-"use client";
-
 import {
+  Bookmark,
   Calculator,
+  DollarSign,
   Home,
   TrendingUp,
-  DollarSign,
-  Bookmark,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -18,11 +15,10 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
-  SidebarTrigger,
 } from "src/components/ui/sidebar";
+import { ActiveSidebarMenuButton, AppSidebarTrigger } from "./navigation.ui";
 
 interface NavigationItem {
   title: string;
@@ -75,11 +71,9 @@ interface AppSidebarProps {
 }
 
 /**
- * Properly implemented shadcn sidebar with navigation for all calculator tools
+ * Server component that provides the main navigation sidebar structure
  */
 export function AppSidebar({ children }: AppSidebarProps) {
-  const pathname = usePathname();
-
   return (
     <SidebarProvider>
       <Sidebar side="left" variant="inset" collapsible="icon">
@@ -97,28 +91,23 @@ export function AppSidebar({ children }: AppSidebarProps) {
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === "/"}
-                    tooltip="Home"
-                  >
+                  <ActiveSidebarMenuButton href="/" tooltip="Home">
                     <Link href="/">
                       <Home className="size-4" />
                       <span>Home</span>
                     </Link>
-                  </SidebarMenuButton>
+                  </ActiveSidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={pathname === "/saved-values"}
+                  <ActiveSidebarMenuButton
+                    href="/saved-values"
                     tooltip="Saved Values"
                   >
                     <Link href="/saved-values">
                       <Bookmark className="size-4" />
                       <span>Saved Values</span>
                     </Link>
-                  </SidebarMenuButton>
+                  </ActiveSidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
             </SidebarGroupContent>
@@ -131,16 +120,15 @@ export function AppSidebar({ children }: AppSidebarProps) {
               <SidebarMenu>
                 {navigationItems.slice(2, 5).map((item) => (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.href}
+                    <ActiveSidebarMenuButton
+                      href={item.href}
                       tooltip={item.description}
                     >
                       <Link href={item.href}>
                         <item.icon className="size-4" />
                         <span className="font-medium">{item.title}</span>
                       </Link>
-                    </SidebarMenuButton>
+                    </ActiveSidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -154,16 +142,15 @@ export function AppSidebar({ children }: AppSidebarProps) {
               <SidebarMenu>
                 {navigationItems.slice(5).map((item) => (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={pathname === item.href}
+                    <ActiveSidebarMenuButton
+                      href={item.href}
                       tooltip={item.description}
                     >
                       <Link href={item.href}>
                         <item.icon className="size-4" />
                         <span className="font-medium">{item.title}</span>
                       </Link>
-                    </SidebarMenuButton>
+                    </ActiveSidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
               </SidebarMenu>
@@ -175,7 +162,7 @@ export function AppSidebar({ children }: AppSidebarProps) {
       <SidebarInset className="bg-white">
         {/* Header with Trigger */}
         <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-white px-4">
-          <SidebarTrigger className="-ml-1" />
+          <AppSidebarTrigger />
           <div className="flex items-center gap-2">
             <Calculator className="size-5 text-blue-600" />
             <h1 className="text-lg font-semibold">Finance Calculator</h1>
