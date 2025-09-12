@@ -38,7 +38,8 @@ export interface InvestmentCalculationResult {
 }
 
 /**
- * Calculate declining balance loan with monthly interest on remaining principal
+ * Calculate declining balance loan with fixed principal payment and varying interest
+ * Each month: Interest = Remaining Balance × Monthly Rate, Principal = Fixed Amount
  */
 export function calculateDecliningBalanceLoan(
   principal: number,
@@ -52,16 +53,14 @@ export function calculateDecliningBalanceLoan(
   let month = 1;
 
   if ("months" in monthsOrPayment) {
-    // Calculate monthly payment for given term
+    // Calculate fixed principal payment for given term
     const months = monthsOrPayment.months;
-    const monthlyPayment =
-      (principal * monthlyRate * Math.pow(1 + monthlyRate, months)) /
-      (Math.pow(1 + monthlyRate, months) - 1);
+    const fixedPrincipalPayment = principal / months;
 
     while (remainingBalance > 0.01 && month <= months) {
       const interestPayment = remainingBalance * monthlyRate;
       const principalPayment = Math.min(
-        monthlyPayment - interestPayment,
+        fixedPrincipalPayment,
         remainingBalance,
       );
       const actualPayment = principalPayment + interestPayment;
@@ -82,28 +81,28 @@ export function calculateDecliningBalanceLoan(
     }
 
     return {
-      monthlyPayment,
+      monthlyPayment: payments.length > 0 ? payments[0].payment : 0,
       payments,
       totalInterest,
       totalAmount: principal + totalInterest,
     };
   } else {
-    // Calculate term for given monthly payment
+    // Calculate term for given fixed principal payment
     const monthlyPayment = monthsOrPayment.monthlyPayment;
+    const fixedPrincipalPayment = monthlyPayment; // In declining balance, payment = principal + interest
 
     while (remainingBalance > 0.01 && month <= 600) {
       // Max 50 years
       const interestPayment = remainingBalance * monthlyRate;
-
-      if (monthlyPayment <= interestPayment) {
-        throw new Error("Monthly payment is too low to cover interest");
-      }
-
       const principalPayment = Math.min(
-        monthlyPayment - interestPayment,
+        fixedPrincipalPayment,
         remainingBalance,
       );
       const actualPayment = principalPayment + interestPayment;
+
+      if (actualPayment < interestPayment) {
+        throw new Error("Payment amount is too low to cover interest");
+      }
 
       remainingBalance -= principalPayment;
       totalInterest += interestPayment;
