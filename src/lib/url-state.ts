@@ -2,9 +2,10 @@
  * URL state management utilities for sharing calculator configurations
  */
 
+import type { FormValues } from "src/app/calculators/investment/investment-calculator.type";
+
 export interface CalculatorState {
-  values: Record<string, number>;
-  mode?: string;
+  values: FormValues;
 }
 
 /**
@@ -13,17 +14,15 @@ export interface CalculatorState {
 export function encodeStateToUrl(state: CalculatorState): URLSearchParams {
   const params = new URLSearchParams();
 
-  // Encode form values
+  // Encode form values (including contributionPeriod)
   Object.entries(state.values).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && !Number.isNaN(value)) {
-      params.set(key, value.toString());
+    if (value !== undefined && value !== null) {
+      // Handle string values (like contributionPeriod) and numeric values
+      if (typeof value === "string" || !Number.isNaN(value)) {
+        params.set(key, value.toString());
+      }
     }
   });
-
-  // Encode mode if provided
-  if (state.mode) {
-    params.set("mode", state.mode);
-  }
 
   return params;
 }
@@ -34,19 +33,31 @@ export function encodeStateToUrl(state: CalculatorState): URLSearchParams {
 export function decodeStateFromUrl(
   searchParams: URLSearchParams,
 ): CalculatorState {
-  const values: Record<string, number> = {};
-  const state: CalculatorState = { values };
+  const values: Partial<FormValues> = {};
+  const state: CalculatorState = { values: values as FormValues };
 
   // Decode form values
   for (const [key, value] of searchParams.entries()) {
-    if (key === "mode") {
-      state.mode = value;
+    if (key === "contributionPeriod") {
+      values.contributionPeriod = value;
       continue;
     }
 
     const numericValue = parseFloat(value);
     if (!Number.isNaN(numericValue)) {
-      values[key] = numericValue;
+      // Type-safe assignment for known FormValues keys
+      if (
+        key in
+        {
+          initialAmount: 0,
+          contributionAmount: 0,
+          months: 0,
+          interestRate: 0,
+          finalValue: 0,
+        }
+      ) {
+        (values as Record<string, number>)[key] = numericValue;
+      }
     }
   }
 
