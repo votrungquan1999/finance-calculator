@@ -1,16 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import type { FormValues } from "src/app/calculators/investment/investment-calculator.type";
 import { CalculatorForm, type FormField } from "src/components/calculator-form";
+import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
 import { ResultsTable, type TableColumn } from "src/components/results-table";
 import { calculateLoanWithFee } from "src/lib/calculations";
 import {
+  type CalculatorState,
   decodeStateFromUrl,
   hasUrlParameters,
-  type CalculatorState,
 } from "src/lib/url-state";
-import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
+
+// Loan-specific form values type
+interface LoanFormValues {
+  principal?: number;
+  feePercentage?: number;
+  interestRate?: number;
+  months?: number;
+  monthlyPayment?: number;
+}
+
+// Loan-specific calculator state
+interface LoanCalculatorState {
+  values: LoanFormValues;
+  mode?: string;
+}
 
 type CalculationMode = "by-term" | "by-payment";
 type LoanWithFeeResult = Awaited<ReturnType<typeof calculateLoanWithFee>>;
@@ -22,7 +38,7 @@ function LoanWithFeeCalculator() {
   const [mode, setMode] = useState<CalculationMode>("by-term");
   const [result, setResult] = useState<LoanWithFeeResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  const [urlState, setUrlState] = useState<CalculatorState | null>(null);
+  const [urlState, setUrlState] = useState<LoanCalculatorState | null>(null);
   const [formValues, setFormValues] = useState<Record<string, number>>({});
   const searchParams = useSearchParams();
 
@@ -32,7 +48,34 @@ function LoanWithFeeCalculator() {
   useEffect(() => {
     if (hasUrlParameters(searchParams)) {
       const decodedState = decodeStateFromUrl(searchParams);
-      setUrlState(decodedState);
+
+      // Convert generic CalculatorState to LoanCalculatorState
+      const loanValues: LoanFormValues = {};
+      if (decodedState.values.initialAmount) {
+        loanValues.principal = parseFloat(decodedState.values.initialAmount);
+      }
+      if (decodedState.values.interestRate) {
+        loanValues.interestRate = parseFloat(decodedState.values.interestRate);
+      }
+      if (decodedState.values.months) {
+        loanValues.months = parseFloat(decodedState.values.months);
+      }
+      if (decodedState.values.finalValue) {
+        loanValues.monthlyPayment = parseFloat(decodedState.values.finalValue);
+      }
+      // Map contributionAmount to feePercentage for loan fee calculator
+      if (decodedState.values.contributionAmount) {
+        loanValues.feePercentage = parseFloat(
+          decodedState.values.contributionAmount,
+        );
+      }
+
+      const loanState: LoanCalculatorState = {
+        values: loanValues,
+        mode: decodedState.mode,
+      };
+
+      setUrlState(loanState);
 
       // Set mode from URL if provided
       if (
@@ -211,8 +254,33 @@ function LoanWithFeeCalculator() {
   const getShareableState = (): CalculatorState | undefined => {
     if (Object.keys(formValues).length === 0) return undefined;
 
+    // Convert loan form values to generic FormValues format
+    const genericValues: Record<string, string> = {
+      contributionPeriod: "monthly", // Default for loan calculators
+    };
+
+    if (formValues.principal !== undefined) {
+      genericValues.initialAmount = formValues.principal.toString();
+    }
+    if (formValues.interestRate !== undefined) {
+      genericValues.interestRate = formValues.interestRate.toString();
+    }
+    if (formValues.months !== undefined) {
+      genericValues.months = formValues.months.toString();
+    }
+    if (formValues.monthlyPayment !== undefined) {
+      genericValues.finalValue = formValues.monthlyPayment.toString();
+    }
+    // Map feePercentage to contributionAmount for loan fee calculator
+    if (formValues.feePercentage !== undefined) {
+      genericValues.contributionAmount = formValues.feePercentage.toString();
+    }
+
     return {
-      values: formValues,
+      values: {
+        ...genericValues,
+        contributionPeriod: "monthly",
+      } as FormValues,
       mode: mode,
     };
   };
@@ -237,7 +305,16 @@ function LoanWithFeeCalculator() {
         modes={modes}
         currentMode={mode}
         onModeChange={(newMode) => setMode(newMode as CalculationMode)}
-        initialValues={urlState?.values}
+        initialValues={
+          urlState?.values
+            ? Object.fromEntries(
+                Object.entries(urlState.values).map(([key, value]) => [
+                  key,
+                  value ?? 0,
+                ]),
+              )
+            : undefined
+        }
         autoCalculate={!!urlState}
       />
 

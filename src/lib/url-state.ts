@@ -6,6 +6,7 @@ import type { FormValues } from "src/app/calculators/investment/investment-calcu
 
 export interface CalculatorState {
   values: FormValues;
+  mode?: string;
 }
 
 /**
@@ -13,6 +14,11 @@ export interface CalculatorState {
  */
 export function encodeStateToUrl(state: CalculatorState): URLSearchParams {
   const params = new URLSearchParams();
+
+  // Encode mode if present
+  if (state.mode) {
+    params.set("mode", state.mode);
+  }
 
   // Encode form values (including contributionPeriod)
   Object.entries(state.values).forEach(([key, value]) => {
@@ -34,10 +40,15 @@ export function decodeStateFromUrl(
   searchParams: URLSearchParams,
 ): CalculatorState {
   const values: Partial<FormValues> = {};
-  const state: CalculatorState = { values: values as FormValues };
+  let mode: string | undefined;
 
   // Decode form values
   for (const [key, value] of searchParams.entries()) {
+    if (key === "mode") {
+      mode = value;
+      continue;
+    }
+
     if (key === "contributionPeriod") {
       values.contributionPeriod = value;
       continue;
@@ -56,10 +67,20 @@ export function decodeStateFromUrl(
           finalValue: 0,
         }
       ) {
-        (values as Record<string, number>)[key] = numericValue;
+        (values as Record<string, string>)[key] = value;
       }
     }
   }
+
+  // Ensure contributionPeriod has a default value
+  if (!values.contributionPeriod) {
+    values.contributionPeriod = "monthly";
+  }
+
+  const state: CalculatorState = {
+    values: values as FormValues,
+    mode,
+  };
 
   return state;
 }
