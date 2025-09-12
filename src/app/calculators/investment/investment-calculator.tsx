@@ -1,7 +1,14 @@
+import { EducationalContentSection } from "./educational-content-section";
+import { FAQSection } from "./faq-section";
 import { FormSection } from "./form-section";
 import { HeroSection } from "./hero-section";
+import {
+  InvestmentCalculatorFAQSchema,
+  InvestmentCalculatorSchema,
+} from "./investment-calculator-schema";
 import { InvestmentCalculatorProvider } from "./investment-calculator.state";
 import type { FormState } from "./investment-calculator.type";
+import { RelatedCalculatorsSection } from "./related-calculators-section";
 import { ResultsSection } from "./results-section";
 
 interface InvestmentCalculatorProps {
@@ -16,10 +23,17 @@ export function InvestmentCalculator({
   initialFormState,
 }: InvestmentCalculatorProps) {
   return (
-    <InvestmentCalculatorProvider initialFormState={initialFormState}>
-      <HeroSection />
-      <FormSection />
-      <ResultsSection />
-    </InvestmentCalculatorProvider>
+    <>
+      <InvestmentCalculatorSchema />
+      <InvestmentCalculatorFAQSchema />
+      <InvestmentCalculatorProvider initialFormState={initialFormState}>
+        <HeroSection />
+        <FormSection />
+        <ResultsSection />
+        <EducationalContentSection />
+        <FAQSection />
+        <RelatedCalculatorsSection />
+      </InvestmentCalculatorProvider>
+    </>
   );
 }
