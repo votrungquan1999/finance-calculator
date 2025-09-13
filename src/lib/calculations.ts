@@ -352,6 +352,12 @@ export function calculateRecurringInvestmentByPeriod(
       totalInterest,
       totalValue,
     });
+
+    // Stop calculation if total value reaches zero or below
+    // This handles cases where negative contributions (withdrawals) deplete the account
+    if (totalValue <= 0) {
+      break;
+    }
   }
 
   return {
@@ -414,6 +420,12 @@ export function calculateRecurringInvestment(
       totalInterest,
       totalValue,
     });
+
+    // Stop calculation if total value reaches zero or below
+    // This handles cases where negative contributions (withdrawals) deplete the account
+    if (totalValue <= 0) {
+      break;
+    }
   }
 
   return {

@@ -2,7 +2,6 @@
 import {
   createContext,
   type Dispatch,
-  memo,
   type PropsWithChildren,
   type Reducer,
   useContext,
@@ -55,5 +54,5 @@ export function createReducerContext<Action, State>(
     return useContext(stateCtx);
   }
 
-  return [memo(Provider), useStateContext, useDispatch] as const;
+  return [Provider, useStateContext, useDispatch] as const;
 }
