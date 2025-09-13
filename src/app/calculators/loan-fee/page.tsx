@@ -1,346 +1,91 @@
-"use client";
-
-import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import type { FormValues } from "src/app/calculators/investment/investment-calculator.type";
-import { CalculatorForm, type FormField } from "src/components/calculator-form";
+import type { Metadata } from "next";
 import { CalculatorSuspenseWrapper } from "src/components/calculator-suspense-wrapper";
-import { ResultsTable, type TableColumn } from "src/components/results-table";
-import { calculateLoanWithFee } from "src/lib/calculations";
+import { LoanFeeCalculator } from "./loan-fee-calculator";
 import {
-  type CalculatorState,
-  decodeStateFromUrl,
-  hasUrlParameters,
-} from "src/lib/url-state";
+  convertSearchParamsToFormState,
+  getCalculationModeFromUrl,
+} from "./loan-fee.url";
 
-// Loan-specific form values type
-interface LoanFormValues {
-  principal?: number;
-  feePercentage?: number;
-  interestRate?: number;
-  months?: number;
-  monthlyPayment?: number;
-}
-
-// Loan-specific calculator state
-interface LoanCalculatorState {
-  values: LoanFormValues;
-  mode?: string;
-}
-
-type CalculationMode = "by-term" | "by-payment";
-type LoanWithFeeResult = Awaited<ReturnType<typeof calculateLoanWithFee>>;
-
-/**
- * Loan with initial fee calculator component
- */
-function LoanWithFeeCalculator() {
-  const [mode, setMode] = useState<CalculationMode>("by-term");
-  const [result, setResult] = useState<LoanWithFeeResult | null>(null);
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [urlState, setUrlState] = useState<LoanCalculatorState | null>(null);
-  const [formValues, setFormValues] = useState<Record<string, number>>({});
-  const searchParams = useSearchParams();
-
-  /**
-   * Load state from URL parameters on component mount
-   */
-  useEffect(() => {
-    if (hasUrlParameters(searchParams)) {
-      const decodedState = decodeStateFromUrl(searchParams);
-
-      // Convert generic CalculatorState to LoanCalculatorState
-      const loanValues: LoanFormValues = {};
-      if (decodedState.values.initialAmount) {
-        loanValues.principal = parseFloat(decodedState.values.initialAmount);
-      }
-      if (decodedState.values.interestRate) {
-        loanValues.interestRate = parseFloat(decodedState.values.interestRate);
-      }
-      if (decodedState.values.months) {
-        loanValues.months = parseFloat(decodedState.values.months);
-      }
-      if (decodedState.values.finalValue) {
-        loanValues.monthlyPayment = parseFloat(decodedState.values.finalValue);
-      }
-      // Map contributionAmount to feePercentage for loan fee calculator
-      if (decodedState.values.contributionAmount) {
-        loanValues.feePercentage = parseFloat(
-          decodedState.values.contributionAmount,
-        );
-      }
-
-      const loanState: LoanCalculatorState = {
-        values: loanValues,
-        mode: decodedState.mode,
-      };
-
-      setUrlState(loanState);
-
-      // Set mode from URL if provided
-      if (
-        decodedState.mode &&
-        ["by-term", "by-payment"].includes(decodedState.mode)
-      ) {
-        setMode(decodedState.mode as CalculationMode);
-      }
-    }
-  }, [searchParams]);
-
-  const modes = [
-    {
-      value: "by-term",
-      label: "Calculate Payment",
-      description: "Enter loan term to calculate required monthly payment",
-    },
-    {
-      value: "by-payment",
-      label: "Calculate Term",
-      description: "Enter monthly payment to calculate loan term",
-    },
-  ];
-
-  const getFormFields = (): FormField[] => {
-    const baseFields: FormField[] = [
-      {
-        id: "principal",
-        label: "Loan Amount",
-        type: "number",
-        placeholder: "100000",
-        required: true,
-        min: 1,
-        description: "The principal amount you want to borrow",
-      },
-      {
-        id: "feePercentage",
-        label: "Initial Fee",
-        type: "percentage",
-        placeholder: "2.0",
-        required: true,
-        min: 0,
-        max: 20,
-        step: 0.1,
-        description: "Upfront fee as percentage of loan amount",
-      },
-      {
-        id: "interestRate",
-        label: "Annual Interest Rate",
-        type: "percentage",
-        placeholder: "5.5",
-        required: true,
-        min: 0,
-        max: 50,
-        step: 0.001,
-        description: "Annual interest rate as a percentage",
-      },
-    ];
-
-    if (mode === "by-term") {
-      baseFields.push({
-        id: "months",
-        label: "Loan Term",
-        type: "number",
-        placeholder: "360",
-        required: true,
-        min: 1,
-        max: 600,
-        description: "Number of months to repay the loan",
-      });
-    } else {
-      baseFields.push({
-        id: "monthlyPayment",
-        label: "Monthly Payment",
-        type: "number",
-        placeholder: "2000",
-        required: true,
-        min: 1,
-        description: "Amount you want to pay each month",
-      });
-    }
-
-    return baseFields;
-  };
-
-  const handleCalculate = async (values: Record<string, number>) => {
-    setIsCalculating(true);
-    setFormValues(values); // Store form values for sharing
-
-    try {
-      const { principal, feePercentage, interestRate } = values;
-
-      let calculationResult: LoanWithFeeResult;
-
-      if (mode === "by-term") {
-        calculationResult = calculateLoanWithFee(
-          principal,
-          feePercentage,
-          interestRate,
-          { months: values.months },
-        );
-      } else {
-        calculationResult = calculateLoanWithFee(
-          principal,
-          feePercentage,
-          interestRate,
-          { monthlyPayment: values.monthlyPayment },
-        );
-      }
-
-      setResult(calculationResult);
-    } catch (error) {
-      console.error("Calculation error:", error);
-    } finally {
-      setIsCalculating(false);
-    }
-  };
-
-  const tableColumns: TableColumn[] = [
-    { key: "month", label: "Month", type: "number" },
-    { key: "payment", label: "Payment", type: "currency" },
-    { key: "principal", label: "Principal", type: "currency" },
-    { key: "interest", label: "Interest", type: "currency" },
-    {
-      key: "remainingBalance",
-      label: "Remaining Balance",
-      type: "currency",
-    },
-  ];
-
-  const getSummary = () => {
-    if (!result) return [];
-
-    const summary = [
-      {
-        label: "Initial Fee",
-        value: result.initialFee,
-        type: "currency" as const,
-      },
-      {
-        label: "Equivalent Interest Rate",
-        value: result.equivalentInterestRate,
-        type: "percentage" as const,
-      },
-      {
-        label: "Total Amount Paid",
-        value: result.totalAmount,
-        type: "currency" as const,
-      },
-      {
-        label: "Total Interest",
-        value: result.totalInterest,
-        type: "currency" as const,
-      },
-      {
-        label: "Number of Payments",
-        value: result.payments.length,
-        type: "number" as const,
-      },
-    ];
-
-    if (result.monthlyPayment) {
-      summary.unshift({
-        label: "Monthly Payment",
-        value: result.monthlyPayment,
-        type: "currency" as const,
-      });
-    }
-
-    return summary;
-  };
-
-  /**
-   * Get shareable state for URL generation
-   */
-  const getShareableState = (): CalculatorState | undefined => {
-    if (Object.keys(formValues).length === 0) return undefined;
-
-    // Convert loan form values to generic FormValues format
-    const genericValues: Record<string, string> = {
-      contributionPeriod: "monthly", // Default for loan calculators
-    };
-
-    if (formValues.principal !== undefined) {
-      genericValues.initialAmount = formValues.principal.toString();
-    }
-    if (formValues.interestRate !== undefined) {
-      genericValues.interestRate = formValues.interestRate.toString();
-    }
-    if (formValues.months !== undefined) {
-      genericValues.months = formValues.months.toString();
-    }
-    if (formValues.monthlyPayment !== undefined) {
-      genericValues.finalValue = formValues.monthlyPayment.toString();
-    }
-    // Map feePercentage to contributionAmount for loan fee calculator
-    if (formValues.feePercentage !== undefined) {
-      genericValues.contributionAmount = formValues.feePercentage.toString();
-    }
-
-    return {
-      values: {
-        ...genericValues,
-        contributionPeriod: "monthly",
-      } as FormValues,
-      mode: mode,
-    };
-  };
-
-  return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold">Loan with Initial Fee Calculator</h1>
-        <p className="text-muted-foreground mt-2">
-          Calculate loan payments that include an upfront fee and see the
-          equivalent interest rate for comparison with no-fee loans.
-        </p>
-      </div>
-
-      <CalculatorForm
-        title="Loan Details"
-        description="Enter your loan information including the initial fee percentage."
-        fields={getFormFields()}
-        onCalculate={handleCalculate}
-        isCalculating={isCalculating}
-        allowModeSwitch={true}
-        modes={modes}
-        currentMode={mode}
-        onModeChange={(newMode) => setMode(newMode as CalculationMode)}
-        initialValues={
-          urlState?.values
-            ? Object.fromEntries(
-                Object.entries(urlState.values).map(([key, value]) => [
-                  key,
-                  value ?? 0,
-                ]),
-              )
-            : undefined
-        }
-        autoCalculate={!!urlState}
-      />
-
-      {result && (
-        <ResultsTable
-          title="Payment Schedule"
-          description="Month-by-month breakdown including fee impact"
-          columns={tableColumns}
-          data={result.payments}
-          summary={getSummary()}
-          filename="loan-with-fee-schedule"
-          calculatorSource="Loan with Fee Calculator"
-          shareableState={getShareableState()}
-        />
-      )}
-    </div>
-  );
+interface LoanFeePageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 /**
- * Loan with initial fee calculator page
+ * Generate SEO-optimized metadata for the loan fee calculator page
+ * @returns Metadata object with targeted keywords and descriptions
  */
-export default function LoanWithFeePage() {
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Loan with Initial Fee Calculator | Monthly Payment Calculator",
+    description:
+      "Calculate loan payments with upfront fees using our professional calculator. Compare equivalent interest rates and plan mortgage payments, personal loans, and auto loans with detailed payment schedules. Free to use.",
+    keywords: [
+      "loan fee calculator",
+      "loan with fee calculator",
+      "upfront fee calculator",
+      "loan calculator",
+      "monthly payment calculator",
+      "mortgage calculator",
+      "personal loan calculator",
+      "auto loan calculator",
+      "loan payment calculator",
+      "loan amortization calculator",
+      "loan schedule calculator",
+      "debt calculator",
+      "interest calculator",
+      "principal calculator",
+    ],
+    openGraph: {
+      title: "Loan with Initial Fee Calculator | Monthly Payment Calculator",
+      description:
+        "Calculate loan payments with upfront fees and see equivalent interest rates. Plan mortgages, personal loans, and auto loans with our professional calculator.",
+      type: "website",
+      url: "/calculators/loan-fee",
+      images: [
+        {
+          url: "/og-loan-fee-calculator.jpg",
+          width: 1200,
+          height: 630,
+          alt: "Loan with Initial Fee Calculator - Monthly Payment Calculator",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Loan with Initial Fee Calculator | Monthly Payment Calculator",
+      description:
+        "Calculate loan payments with upfront fees and see equivalent interest rates. Plan mortgages, personal loans, and auto loans.",
+      images: ["/og-loan-fee-calculator.jpg"],
+    },
+    alternates: {
+      canonical: "/calculators/loan-fee",
+    },
+    other: {
+      "application-name": "Loan Fee Calculator",
+      "apple-mobile-web-app-title": "Loan Fee Calculator",
+    },
+  };
+}
+
+/**
+ * Loan fee calculator page with server-side URL state management
+ * Uses Next.js built-in searchParams for server-side parameter handling
+ */
+export default async function LoanFeePage({ searchParams }: LoanFeePageProps) {
+  const params = await searchParams;
+
+  const urlSearchParams = new URLSearchParams(params as Record<string, string>);
+
+  // Convert URL parameters directly to FormState
+  const initialFormState = convertSearchParamsToFormState(urlSearchParams);
+  const initialCalculationMode = getCalculationModeFromUrl(urlSearchParams);
+
   return (
     <CalculatorSuspenseWrapper>
-      <LoanWithFeeCalculator />
+      <LoanFeeCalculator
+        initialFormState={initialFormState}
+        initialCalculationMode={initialCalculationMode}
+      />
     </CalculatorSuspenseWrapper>
   );
 }
