@@ -14,7 +14,7 @@ export const useFormValidation = () => {
   const dispatch = useInvestmentCalculatorDispatch();
 
   /**
-   * Validate form fields for numeric values and positive numbers
+   * Validate form fields for numeric values and appropriate ranges
    * @returns true if all fields are valid, false if any validation errors exist
    */
   const validateForm = (): boolean => {
@@ -28,6 +28,9 @@ export const useFormValidation = () => {
         const numValue = parseFloat(value);
         if (Number.isNaN(numValue)) {
           newErrors[fieldId] = "Must be a valid number";
+        } else if (fieldId === "contributionAmount") {
+          // Allow negative contribution amounts for withdrawals
+          // No additional validation needed for contribution amount
         } else if (numValue < 0) {
           newErrors[fieldId] = "Must be a positive number";
         }

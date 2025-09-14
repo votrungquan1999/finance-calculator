@@ -38,7 +38,8 @@ export function ContributionAmountField() {
         />
       </div>
       <p className="text-sm text-muted-foreground">
-        Amount you plan to invest periodically (leave empty to solve for this)
+        Amount you plan to invest periodically (use negative values for
+        withdrawals, leave empty to solve for this)
       </p>
     </FormFieldWrapper>
   );

@@ -25,17 +25,17 @@ export function ContributionAmountFieldWithState() {
   const getPlaceholder = () => {
     switch (periodDetails.periodsPerYear) {
       case 52:
-        return "200"; // Weekly
+        return "200 or -200"; // Weekly
       case 12:
-        return "1000"; // Monthly
+        return "1000 or -1000"; // Monthly
       case 4:
-        return "3000"; // Quarterly
+        return "3000 or -3000"; // Quarterly
       case 2:
-        return "6000"; // Semi-annually
+        return "6000 or -6000"; // Semi-annually
       case 1:
-        return "12000"; // Annually
+        return "12000 or -12000"; // Annually
       default:
-        return "1000";
+        return "1000 or -1000";
     }
   };
 

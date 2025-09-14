@@ -139,7 +139,6 @@ export function ContributionAmountInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      min={0}
       className={`border-0 rounded-r-none ${error ? "border-destructive" : ""}`}
     />
   );

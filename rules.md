@@ -17,38 +17,6 @@ For each task, Cursor MUST double-check:
   - You need a union type (`type A = B | C`).
   - You need mapped/conditional types.
 
-- ALWAYS use `enum` instead of string literal union types for fixed sets of values.
-
-✅ Correct:
-
-```ts
-interface User {
-  id: string
-  name: string
-}
-
-enum UserRole {
-  Admin = 'admin',
-  Editor = 'editor',
-  Viewer = 'viewer',
-}
-
-enum FishType {
-  Salmon = 'salmon',
-  Cod = 'cod',
-}
-```
-
-❌ Incorrect:
-
-```ts
-type User = { id: string; name: string }
-
-type UserRole = 'admin' | 'editor' | 'viewer'
-
-type Fish = 'Salmon' | 'Cod'
-```
-
 - EVERY function MUST have a JSDoc block describing its purpose.
 - WHENEVER function logic changes, JSDoc and inline comments MUST be updated accordingly.
 
@@ -57,8 +25,27 @@ type Fish = 'Salmon' | 'Cod'
 ```ts
 /**
  * Returns a user by ID from the database.
+ * @param id - The unique identifier of the user
+ * @returns Promise that resolves to the user object or null if not found
  */
-async function getUserById(id: string): Promise<User> {
+async function getUserById(id: string): Promise<User | null> {
+  return db.user.findUnique({ where: { id } })
+}
+```
+
+❌ Incorrect (missing JSDoc or incomplete documentation):
+
+```ts
+// Missing JSDoc
+function getUserById(id: string): Promise<User> {
+  return db.user.findUnique({ where: { id } })
+}
+
+// Incomplete JSDoc
+/**
+ * Gets user
+ */
+function getUserById(id: string): Promise<User> {
   return db.user.findUnique({ where: { id } })
 }
 ```
@@ -119,6 +106,26 @@ interface Product {
 
 export type { User, Product }
 export { UserRole, ProductStatus }
+```
+
+- ALWAYS use `enum` instead of string literal union types for fixed sets of values.
+
+✅ Correct:
+
+```ts
+export enum ContributionPeriod {
+  Weekly = 'weekly',
+  Monthly = 'monthly',
+  Quarterly = 'quarterly',
+  SemiAnnually = 'semi-annually',
+  Annually = 'annually',
+}
+```
+
+❌ Incorrect:
+
+```ts
+type ContributionPeriod = 'weekly' | 'monthly' | 'quarterly' | 'semi-annually' | 'annually'
 ```
 
 ---
@@ -394,6 +401,91 @@ export function NotificationsList({ children }: { children: React.ReactNode }) {
 
 Server components should handle content composition while client components focus only on interactive behavior. Pass complete elements as children to client components instead of recreating them.
 
+✅ Correct (Server composes static content, client handles state):
+
+```tsx
+// mode-selection.tsx (Server Component)
+import { TabsList, TabsTrigger, TabsContent } from 'src/components/ui/tabs'
+import { TabsWrapper } from './component.ui'
+import { CalculationMode } from './component.type'
+
+export function ModeSelection() {
+  return (
+    <div className='space-y-2'>
+      <TabsWrapper>
+        <TabsList className='grid w-full grid-cols-2'>
+          <TabsTrigger value='1'>tab 1</TabsTrigger>
+          <TabsTrigger value='2'>tab 2</TabsTrigger>
+        </TabsList>
+        <TabsContent value='1' className='mt-2'>
+          <p className='text-sm text-muted-foreground'>tab 1 content</p>
+        </TabsContent>
+        <TabsContent value='2' className='mt-2'>
+          <p className='text-sm text-muted-foreground'>tab 2 content</p>
+        </TabsContent>
+      </TabsWrapper>
+    </div>
+  )
+}
+```
+
+```javascript
+// component.ui.tsx (Client Component)
+'use client'
+
+import { Tabs } from 'src/components/ui/tabs'
+import { useComponentState } from './component.state'
+import { useComponentInput } from './hooks/component.input'
+
+export function TabsWrapper({ children }: { children: React.ReactNode }) {
+  const state = useComponentState()
+  const { handleTabChange } = useComponentInput()
+
+  return (
+    <Tabs
+      value="1"
+      onValueChange={(value) => handleTabChange(value as string)}
+      className='w-full'
+    >
+      {children}
+    </Tabs>
+  )
+}
+```
+
+❌ Incorrect (Client component handling content composition):
+
+```javascript
+// mode-selection-with-state.tsx - DON'T DO THIS
+'use client'
+
+export function ModeSelectionWithState() {
+  const state = useComponentState()
+  const { handleTabChange } = useComponentInput()
+
+  const tabs = [
+    { value: '1', label: 'tab 1', description: 'tab 1 content' },
+    { value: '2', label: 'tab 2', description: 'tab 2 content' },
+  ]
+
+  return (
+    <Tabs value={state.tab} onValueChange={(value) => handleTabChange(value as string)}>
+      <TabsList>
+        {tabs.map((tab) => (
+          <TabsTrigger key={tab.value} value={tab.value}>
+            {tab.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      <TabsContent value={state.tab}>
+        {/* Dynamic content based on state - DON'T DO THIS */}
+        <p>{tabs.find((t) => t.value === state.tab)?.description}</p>
+      </TabsContent>
+    </Tabs>
+  )
+}
+```
+
 ✅ Correct (Server composes content, client handles interaction):
 
 ```tsx
@@ -454,6 +546,78 @@ export function ActiveMenuButton({
         <span>{title}</span>
       </Link>
     </SidebarMenuButton>
+  )
+}
+```
+
+✅ Correct:
+
+```tsx
+// initial-amount-field.tsx (Server Component)
+import { Label } from 'src/components/ui/label'
+import { SavedValuesPopoverWithState } from '../../components/saved-values-popover-with-state'
+import { FormFieldWrapper } from '../../investment-calculator.ui'
+import { InitialAmountFieldWithState } from './initial-amount-field-with-state'
+
+export function InitialAmountField() {
+  return (
+    <FormFieldWrapper>
+      <Label htmlFor='initialAmount'>Initial Investment</Label>
+      <div className='flex gap-2'>
+        <InitialAmountFieldWithState />
+        <SavedValuesPopoverWithState fieldId='initialAmount' fieldType='number' />
+      </div>
+      <p className='text-sm text-muted-foreground'>
+        One-time initial investment amount (leave empty to solve for this)
+      </p>
+    </FormFieldWrapper>
+  )
+}
+```
+
+```javascript
+// initial-amount-field-with-state.tsx (Client Component)
+'use client'
+
+import { Input } from 'src/components/ui/input'
+import { useInputHandlers } from '../../hooks/investment-calculator.input'
+import { useInvestmentCalculatorState } from '../../investment-calculator.state'
+
+export function InitialAmountFieldWithState() {
+  const state = useInvestmentCalculatorState()
+  const { handleInputChange } = useInputHandlers()
+
+  return (
+    <>
+      <Input
+      // input props here that need client state
+      />
+      {state.formState.formErrors.initialAmount && (
+        <p className='text-sm text-destructive'>{state.formState.formErrors.initialAmount}</p>
+      )}
+    </>
+  )
+}
+```
+
+❌ Incorrect (mixing server and client concerns):
+
+```javascript
+// initial-amount-field.tsx - DON'T DO THIS
+'use client'
+
+export function InitialAmountField() {
+  const state = useInvestmentCalculatorState()
+  const { handleInputChange } = useInputHandlers()
+
+  return (
+    <div className='space-y-2'>
+      <Label htmlFor='initialAmount'>Initial Investment</Label>
+      <Input
+      // input props here that need client state
+      />
+      <p className='text-sm text-muted-foreground'>One-time initial investment amount</p>
+    </div>
   )
 }
 ```
@@ -637,7 +801,53 @@ export function useMyDispatch() {
 
 ---
 
-## 6. Meta Rules
+## 6. URL State Management Patterns
+
+For pages that need URL state management, ALWAYS handle URL parameters on the server side and pass them as initial state to client components.
+
+### 6.1 Server-Side URL Parameter Handling
+
+✅ Correct:
+
+```tsx
+// page.tsx (Server Component)
+interface InvestmentPageProps {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}
+
+function convertSearchParamsToFormState(urlSearchParams: URLSearchParams): FormState {
+  // Implementation here
+}
+
+export default async function InvestmentPage({ searchParams }: InvestmentPageProps) {
+  const params = await searchParams
+  const urlSearchParams = new URLSearchParams(params as Record<string, string>)
+  const initialFormState = convertSearchParamsToFormState(urlSearchParams)
+
+  return (
+    <CalculatorSuspenseWrapper>
+      <InvestmentCalculator initialFormState={initialFormState} />
+    </CalculatorSuspenseWrapper>
+  )
+}
+```
+
+❌ Incorrect (handling URL state on client):
+
+```tsx
+// page.tsx - DON'T DO THIS
+'use client'
+
+export default function InvestmentPage() {
+  const searchParams = useSearchParams()
+
+  // ... URL state handling using useSearchParams must not be used unless absolutely necessary
+}
+```
+
+---
+
+## 7. Meta Rules
 
 - ALWAYS explain which rules were applied in the output.
 - MUST keep files under **300 lines** for AI context management.
