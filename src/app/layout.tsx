@@ -16,6 +16,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : "http://localhost:3000",
+  ),
   title: {
     default: "Finance Calculator | Free Loan & Investment Calculators",
     template: "%s | Finance Calculator",
@@ -81,6 +88,11 @@ export const metadata: Metadata = {
   },
   category: "finance",
   classification: "Financial Tools",
+  icons: {
+    icon: "/icon.png",
+    shortcut: "/icon.png",
+    apple: "/icon.png",
+  },
   other: {
     "application-name": "Finance Calculator",
     "apple-mobile-web-app-capable": "yes",
