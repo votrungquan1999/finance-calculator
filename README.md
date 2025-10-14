@@ -1,6 +1,6 @@
 # 📊 Loan & Investment Calculator App
 
-A modern **Next.js web app** for calculating loans, interests, and investments.  
+A **vibe coding project** - A modern Next.js web app for calculating loans, interests, and investments.  
 Easily simulate loan repayment schedules, monthly payments, and compound investment growth with clear tables, charts, and export options.
 
 ## ✨ Features
@@ -32,6 +32,10 @@ Easily simulate loan repayment schedules, monthly payments, and compound investm
 - **TypeScript**
 - **Tailwind CSS** + **shadcn/ui** for UI
 - **Recharts** for charts and data visualization
+
+## 🤖 Vibe Coding Project
+
+This project was built as a **vibe coding** experiment - exploring AI agent capabilities through structured prompts and rules without direct user control. The goal is to understand how well an AI agent can architect, develop, and maintain a complete software project when given comprehensive guidelines and allowed to work autonomously. This serves as a testbed for evaluating AI-driven development workflows and agent autonomy in real-world software engineering scenarios.
 
 ---
 
