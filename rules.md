@@ -73,6 +73,8 @@ interface ApiResponse {
 ```
 
 - NEVER use multi-export statements like `export { A, B, C }` or `export type { X, Y, Z }`. ALWAYS use individual export statements for better traceability.
+- NEVER re-export types from shared locations. Each file should only export its own specific types and import shared types directly.
+- ALWAYS keep types with their related functionality. For example, S3UploadResult should be in the S3 file, not in product types.
 
 ✅ Correct:
 
@@ -146,20 +148,6 @@ type ContributionPeriod = 'weekly' | 'monthly' | 'quarterly' | 'semi-annually' |
 
 ```tsx
 <div className='w-4 h-4' />
-```
-
-- NEVER use `absolute` positioning. ALWAYS use `pile` class instead.
-
-✅ Correct:
-
-```tsx
-<div className='pile' />
-```
-
-❌ Incorrect:
-
-```tsx
-<div className='absolute top-0 left-0' />
 ```
 
 - ALWAYS use `grid` for layout. ONLY use `flex` if grid cannot solve the layout requirement.
@@ -241,6 +229,71 @@ type ContributionPeriod = 'weekly' | 'monthly' | 'quarterly' | 'semi-annually' |
 <div className='text-muted-foreground flex flex-col items-start px-4 py-2 whitespace-nowrap col-start-1 row-span-2 row-start-3 @lg:col-start-4 @lg:row-span-2'>
   {children}
 </div>
+```
+
+---
+
+### 2.4 Component Library
+
+- ALWAYS use shadcn/ui components unless explicitly told otherwise.
+- NEVER create custom UI components when shadcn equivalents exist.
+- ALWAYS install shadcn components using the CLI: `npx shadcn@latest add [component-name]`
+- ALWAYS import shadcn components from `src/components/ui/`.
+- If a component doesn't exist in shadcn, check the registry first before creating custom components.
+
+✅ Correct:
+
+```tsx
+import { Button } from 'src/components/ui/button'
+import { Input } from 'src/components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from 'src/components/ui/dialog'
+
+export function LoginForm() {
+  return (
+    <Dialog>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Login</DialogTitle>
+        </DialogHeader>
+        <form className='space-y-4'>
+          <Input placeholder='Email' />
+          <Input type='password' placeholder='Password' />
+          <Button type='submit'>Login</Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+```
+
+❌ Incorrect (creating custom components when shadcn exists):
+
+```javascript
+// DON'T DO THIS - use shadcn Button instead
+function CustomButton({ children, onClick }: { children: React.ReactNode, onClick: () => void }) {
+  return (
+    <button className='bg-primary text-primary-foreground hover:bg-primary/90 px-4 py-2 rounded-md' onClick={onClick}>
+      {children}
+    </button>
+  )
+}
+
+// DON'T DO THIS - use shadcn Dialog instead
+function CustomModal({
+  isOpen,
+  onClose,
+  children,
+}: {
+  isOpen: boolean,
+  onClose: () => void,
+  children: React.ReactNode,
+}) {
+  return isOpen ? (
+    <div className='fixed inset-0 bg-black/50 flex items-center justify-center'>
+      <div className='bg-white p-6 rounded-lg'>{children}</div>
+    </div>
+  ) : null
+}
 ```
 
 ---
@@ -553,47 +606,42 @@ export function ActiveMenuButton({
 ✅ Correct:
 
 ```tsx
-// initial-amount-field.tsx (Server Component)
+// amount-field.tsx (Server Component)
 import { Label } from 'src/components/ui/label'
 import { SavedValuesPopoverWithState } from '../../components/saved-values-popover-with-state'
 import { FormFieldWrapper } from '../../investment-calculator.ui'
-import { InitialAmountFieldWithState } from './initial-amount-field-with-state'
+import { AmountFieldWithState } from './amount-field-with-state'
 
-export function InitialAmountField() {
+export function AmountField() {
   return (
-    <FormFieldWrapper>
-      <Label htmlFor='initialAmount'>Initial Investment</Label>
-      <div className='flex gap-2'>
-        <InitialAmountFieldWithState />
-        <SavedValuesPopoverWithState fieldId='initialAmount' fieldType='number' />
-      </div>
-      <p className='text-sm text-muted-foreground'>
-        One-time initial investment amount (leave empty to solve for this)
-      </p>
-    </FormFieldWrapper>
+    <FormField name='amount'>
+      <LabelField>Investment Amount</LabelField>
+      <InputField asChild>
+        <AmountFieldInput />
+      </InputField>
+      <FieldDescription>Investment amount (leave empty to solve for this)</FieldDescription>
+    </FormField>
   )
 }
 ```
 
 ```javascript
-// initial-amount-field-with-state.tsx (Client Component)
+// amount-field-with-state.tsx (Client Component)
 'use client'
 
 import { Input } from 'src/components/ui/input'
 import { useInputHandlers } from '../../hooks/investment-calculator.input'
 import { useInvestmentCalculatorState } from '../../investment-calculator.state'
 
-export function InitialAmountFieldWithState() {
+export function AmountFieldInput({ ...inputProps }: React.ComponentProps<typeof Input>) {
   const state = useInvestmentCalculatorState()
   const { handleInputChange } = useInputHandlers()
 
   return (
     <>
-      <Input
-      // input props here that need client state
-      />
-      {state.formState.formErrors.initialAmount && (
-        <p className='text-sm text-destructive'>{state.formState.formErrors.initialAmount}</p>
+      <Input {...inputProps} />
+      {state.formState.formErrors.amount && (
+        <p className='text-sm text-destructive'>{state.formState.formErrors.amount}</p>
       )}
     </>
   )
@@ -603,20 +651,18 @@ export function InitialAmountFieldWithState() {
 ❌ Incorrect (mixing server and client concerns):
 
 ```javascript
-// initial-amount-field.tsx - DON'T DO THIS
+// amount-field.tsx - DON'T DO THIS
 'use client'
 
-export function InitialAmountField() {
+export function AmountField() {
   const state = useInvestmentCalculatorState()
   const { handleInputChange } = useInputHandlers()
 
   return (
     <div className='space-y-2'>
-      <Label htmlFor='initialAmount'>Initial Investment</Label>
-      <Input
-      // input props here that need client state
-      />
-      <p className='text-sm text-muted-foreground'>One-time initial investment amount</p>
+      <Label htmlFor='amount'>Investment Amount</Label>
+      <Input id='amount' />
+      <p className='text-sm text-muted-foreground'>Investment amount</p>
     </div>
   )
 }
@@ -638,11 +684,11 @@ For complex components, ALWAYS follow this file structure pattern:
 ✅ Example structure:
 
 ```
-src/components/user-profile/
-├── user-profile.tsx          # Server component
-├── user-profile.ui.tsx       # Client UI components
-├── user-profile.state.tsx    # State management
-└── user-profile.type.ts      # Shared types
+src/components/carousel/
+├── index.tsx             # Server component
+├── carousel.ui.tsx       # Client UI components
+├── carousel.state.tsx    # State management
+└── carousel.type.ts      # Shared types
 ```
 
 ### 4.2 State Management File (`*.state.tsx`)
@@ -664,49 +710,49 @@ src/components/user-profile/
 ❌ Prohibited pattern:
 
 ```
-src/components/user-profile/
-├── user-profile.tsx          # Server component
-├── user-profile.client.tsx   # ❌ NEVER DO THIS
-└── user-profile.ui.tsx       # Client UI components
+src/components/carousel/
+├── carousel.tsx          # Server component
+├── carousel.client.tsx   # ❌ NEVER DO THIS
+└── carousel.ui.tsx       # Client UI components
 ```
 
 ✅ Correct pattern:
 
 ```
-src/components/user-profile/
-├── user-profile.tsx          # Server component
-├── user-profile.ui.tsx       # Client UI components
-├── user-profile.state.tsx    # Client state and hooks
-└── user-profile.type.ts      # Shared types
+src/components/carousel/
+├── index.tsx             # Server component
+├── carousel.ui.tsx       # Client UI components
+├── carousel.state.tsx    # Client state and hooks
+└── carousel.type.ts      # Shared types
 ```
 
-✅ Example `user-profile.state.tsx`:
+✅ Example `carousel.state.tsx`:
 
 ```tsx
 'use client'
 
 import { createReducerContext } from '@/lib/context'
-import type { UserProfileState, UserProfileAction } from './user-profile.type'
+import type { CarouselState, CarouselAction } from './carousel.type'
 
-const initialState: UserProfileState = {
+const initialState: CarouselState = {
   isEditing: false,
   formData: null,
   errors: [],
 }
 
-function userProfileReducer(state: UserProfileState, action: UserProfileAction): UserProfileState {
+function carouselReducer(state: CarouselState, action: CarouselAction): CarouselState {
   switch (action.type) {
-    case 'START_EDIT':
-      return { ...state, isEditing: true }
-    case 'SAVE_PROFILE':
-      return { ...state, isEditing: false, formData: action.payload }
+    case 'Next':
+      return { ...state, currentIndex: state.currentIndex + (1 % state.items.length) }
+    case 'Previous':
+      return { ...state, currentIndex: state.currentIndex - (1 % state.items.length) }
     default:
       return state
   }
 }
 
 export const [UserProfileProvider, useUserProfileState, useUserProfileDispatch] = createReducerContext(
-  userProfileReducer,
+  carouselReducer,
   initialState
 )
 ```
@@ -737,18 +783,168 @@ useEffect(() => {
 }, [props.value])
 ```
 
-- ALWAYS use `useSyncExternalStore` instead of `useEffect` for subscriptions.
-
 - ALWAYS use `context` for prop drilling instead of passing deeply.
+
+- ALWAYS use `useSyncExternalStore` instead of `useEffect` for subscriptions.
 
 - ALWAYS use `useReducer` over `useState` for complex local state.
 
 - ALWAYS use `createReducerContext` when possible.
 
-✅ Example:
+- ALWAYS pass initial data directly to the provider as props instead of using initializer components or useEffect.
+
+✅ Correct (passing data directly to provider):
 
 ```tsx
-const [Provider, useStateCtx, useDispatchCtx] = createReducerContext(reducer, initialState)
+// context.tsx
+const [ProviderBase, useState, useDispatch] = createReducerContext(reducer, initialState)
+
+export function MyProvider({ children, initialData }: { children: React.ReactNode; initialData?: MyData[] }) {
+  return <ProviderBase data={initialData}>{children}</ProviderBase>
+}
+
+// page.tsx (Server Component)
+export default function MyPage() {
+  const data = await getData()
+
+  return (
+    <MyProvider initialData={data}>
+      <MyContent />
+    </MyProvider>
+  )
+}
+```
+
+❌ Incorrect (using initializer components or useEffect):
+
+```javascript
+// DON'T DO THIS - using initializer component
+function MyComponent{
+  return <MyProvider>
+    <MyInitializer data={data} />
+    <MyContent />
+  </MyProvider>
+}
+
+// DON'T DO THIS - using useEffect in provider
+export function MyProvider({ children, data }: { children: React.ReactNode, data: MyData[] }) {
+  const [state, setState] = useState(initialState)
+
+  useEffect(() => {
+    setState((prev) => ({ ...prev, data }))
+  }, [data])
+
+  return <Context.Provider value={state}>{children}</Context.Provider>
+}
+```
+
+- ALWAYS reuse existing providers when they serve the same internal state. DO NOT create separate providers for related functionality.
+
+✅ Correct (reusing existing provider):
+
+```tsx
+// form-state.state.tsx
+const initialState: FormState = {
+  isSubmitting: false,
+  error: null,
+  fieldErrors: {},
+  formRef: null,
+  isConfirmDialogOpen: false,
+}
+
+const [FormProviderBase, useFormState, useFormDispatch] = createReducerContext(formReducer, initialState)
+
+// Enhanced provider that includes formRef in state
+export function FormProvider({
+  formRef,
+  children,
+}: {
+  formRef: React.RefObject<HTMLFormElement | null>
+  children: React.ReactNode
+}) {
+  return <FormProviderBase formRef={formRef}>{children}</FormProviderBase>
+}
+
+// Hook to access formRef from state
+export function useFormRef() {
+  const state = useFormState()
+  return state.formRef
+}
+```
+
+❌ Incorrect (creating separate providers for related functionality):
+
+```tsx
+// DON'T DO THIS - separate contexts for related state
+const FormStateContext = createContext(/* form state */)
+const FormRefContext = createContext(/* form ref */)
+const FormActionContext = createContext(/* form action */)
+
+export function FormProvider({ children }) {
+  /* form state context */
+}
+export function FormRefProvider({ children }) {
+  /* form ref context */
+}
+export function FormActionProvider({ children }) {
+  /* form action context */
+}
+```
+
+- NEVER use the hooks from `createReducerContext` directly in components. ALWAYS transform them into more useful, domain-specific hooks.
+
+✅ Correct (transforming hooks into domain-specific ones):
+
+```tsx
+// component.state.tsx
+const [Provider, useRawState, useRawDispatch] = createReducerContext(reducer, initialState)
+
+// Transform into domain-specific hooks
+export function useOpenState() {
+  const state = useRawState()
+  const dispatch = useRawDispatch()
+  return [state.isOpen, dispatch]
+}
+
+export function useLanguage() {
+  const dispatch = useRawDispatch()
+  const { language } = useRawState()
+  return [language, (language: string) => dispatch({ type: 'SWITCH_LANGUAGE', payload: language })]
+}
+
+export { Provider as ComponentProvider }
+```
+
+❌ Incorrect (using raw hooks directly):
+
+```tsx
+// component.tsx - DON'T DO THIS
+export function MyComponent() {
+  const state = useRawState() // ❌ Don't use raw state
+  const dispatch = useRawDispatch() // ❌ Don't use raw dispatch
+
+  const handleClick = () => {
+    dispatch({ type: 'OPEN_DIALOG', payload: 'some-id' }) // ❌ Raw dispatch
+  }
+
+  return <div onClick={handleClick}>{state.isOpen ? 'Open' : 'Closed'}</div>
+}
+```
+
+✅ Correct (using transformed hooks):
+
+```tsx
+// component.tsx
+export function MyComponent() {
+  const [isOpen, dispatch] = useOpenState()
+  const [language, setLanguage] = useLanguage()
+
+  const handleClick = () => {
+    dispatch({ type: 'OPEN_DIALOG', payload: 'some-id' }) // ✅ Clean, semantic action
+  }
+
+  return <div onClick={handleClick}>{isOpen ? 'Open' : 'Closed'}</div>
+}
 ```
 
 ### 5.1 When `createReducerContext` is Not Available
@@ -762,6 +958,8 @@ If `createReducerContext` is not available in the project:
    - Should you use a different state management solution?
 
 2. **DO NOT** proceed with guessing or assuming a solution.
+
+- Behavioral components MUST accept an optional `asChild` prop and use Radix `Slot`.
 
 ✅ Fallback with normal Context (only if user approves):
 
@@ -796,8 +994,6 @@ export function useMyDispatch() {
   return dispatch
 }
 ```
-
-- Behavioral components MUST accept an optional `asChild` prop and use Radix `Slot`.
 
 ---
 
@@ -847,15 +1043,116 @@ export default function InvestmentPage() {
 
 ---
 
-## 7. Meta Rules
+## 7. Database Access Patterns
+
+- ALWAYS use typed database collections with proper document types.
+- ALL database document types MUST have the "Document" suffix.
+- ALWAYS separate database document types from client-facing interfaces.
+
+✅ Correct:
+
+```ts
+// Database document type
+export interface ProductDocument {
+  _id?: unknown // MongoDB ObjectId
+  id: string
+  name: string
+  // ... other database fields
+}
+
+// Client-facing interface
+export interface Product {
+  id: string
+  name: string
+  // ... clean interface for components
+}
+
+// Database access with proper typing
+const db = await getDatabase()
+const products = await db.collection<ProductDocument>('products').find({}).toArray()
+```
+
+❌ Incorrect:
+
+```ts
+// Missing Document suffix
+export interface Product {
+  _id?: any
+  id: string
+  name: string
+}
+
+// Untyped database access
+const products = await db.collection('products').find({}).toArray()
+```
+
+- ALWAYS convert database documents to client interfaces when returning data.
+- NEVER expose raw database documents to client components.
+
+✅ Correct:
+
+```ts
+export async function getAllProducts(): Promise<Product[]> {
+  const db = await getDatabase()
+  const documents = await db.collection<ProductDocument>('products').find({}).toArray()
+
+  // Convert to client interface
+  return documents.map((doc) => ({
+    id: doc.id,
+    name: doc.name,
+    // ... map only needed fields
+  }))
+}
+```
+
+❌ Incorrect:
+
+```ts
+export async function getAllProducts(): Promise<ProductDocument[]> {
+  const db = await getDatabase()
+  return await db.collection<ProductDocument>('products').find({}).toArray()
+}
+```
+
+---
+
+## 9. Testing and Development
+
+- MUST create a temporary `.ts` test file when writing complicated functions (functions with multiple conditional branches or loops).
+- The test file should import the function and run it with multiple example cases including edge cases.
+- MUST include the basic workflow in the test file to verify the function flow.
+- After verifying everything works correctly, MUST delete the temporary test file.
+- This is NOT unit/integration testing - it's a development verification step.
+
+✅ Example:
+
+```ts
+// temp-test-calculateLoan.ts
+import { calculateLoan } from './calculations'
+
+// Test case 1: Standard loan
+console.log('Test 1:', calculateLoan(10000, 0.05, 12))
+
+// Test case 2: Edge case - zero interest
+console.log('Test 2:', calculateLoan(10000, 0, 12))
+
+// Test case 3: Edge case - high interest
+console.log('Test 3:', calculateLoan(10000, 0.25, 12))
+```
+
+---
+
+## 10. Meta Rules
 
 - ALWAYS explain which rules were applied in the output.
 - MUST keep files under **300 lines** for AI context management.
 - NEVER require running/building the server to validate output.
+- NEVER run `npm run build` or `npm run dev` after completing tasks, the user will handle this.
+- When following a document to implement a task, if the plan changes during implementation, ALWAYS update the document file to reflect those changes.
 - AI MAY replace entire components or structures if it improves clarity/compliance.
 - For complex changes, AI MUST ask:
-  - “Am I correct?”
-  - “Which rules apply here?”
-  - “Did I miss any relevant rules?”
+  - "Am I correct?"
+  - "Which rules apply here?"
+  - "Did I miss any relevant rules?"
 
 ---
