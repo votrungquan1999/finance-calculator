@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     siteName: "Finance Calculator",
     images: [
       {
-        url: "/og-image.jpg", // You'll need to create this image
+        url: "/finance_cal_og.png",
         width: 1200,
         height: 630,
         alt: "Finance Calculator - Professional Financial Tools",
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
     title: "Finance Calculator | Free Loan & Investment Calculators",
     description:
       "Professional financial calculators with detailed results and export capabilities. Calculate loan payments, investment returns, and more.",
-    images: ["/og-image.jpg"], // You'll need to create this image
+    images: ["/finance_cal_og.png"],
   },
   alternates: {
     canonical: "/",

@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/calculators/loan-annuity",
       images: [
         {
-          url: "/og-loan-annuity-calculator.jpg",
+          url: "/finance_cal_og.png",
           width: 1200,
           height: 630,
           alt: "Equal Payment Loan Calculator - Fixed Monthly Payment Calculator",
@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Equal Payment Loan Calculator | Fixed Monthly Payment Calculator",
       description:
         "Calculate equal monthly payment loans with detailed payment schedules. Plan mortgages, personal loans, and auto loans.",
-      images: ["/og-loan-annuity-calculator.jpg"],
+      images: ["/finance_cal_og.png"],
     },
     alternates: {
       canonical: "/calculators/loan-annuity",

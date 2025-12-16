@@ -29,7 +29,7 @@ export function InvestmentCalculatorSchema() {
       "Multiple investment scenarios",
       "Real-time calculation updates",
     ],
-    screenshot: "/og-investment-calculator.jpg",
+    screenshot: "/finance_cal_og.png",
     softwareVersion: "1.0",
     datePublished: "2025-01-01",
     dateModified: new Date().toISOString().split("T")[0],

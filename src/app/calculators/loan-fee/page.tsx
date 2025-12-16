@@ -43,7 +43,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/calculators/loan-fee",
       images: [
         {
-          url: "/og-loan-fee-calculator.jpg",
+          url: "/finance_cal_og.png",
           width: 1200,
           height: 630,
           alt: "Loan with Initial Fee Calculator - Monthly Payment Calculator",
@@ -55,7 +55,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Loan with Initial Fee Calculator | Monthly Payment Calculator",
       description:
         "Calculate loan payments with upfront fees and see equivalent interest rates. Plan mortgages, personal loans, and auto loans.",
-      images: ["/og-loan-fee-calculator.jpg"],
+      images: ["/finance_cal_og.png"],
     },
     alternates: {
       canonical: "/calculators/loan-fee",

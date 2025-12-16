@@ -94,7 +94,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/calculators/investment",
       images: [
         {
-          url: "/og-investment-calculator.jpg",
+          url: "/finance_cal_og.png",
           width: 1200,
           height: 630,
           alt: "Investment Calculator - Compound Interest and Retirement Planning Tool",
@@ -107,7 +107,7 @@ export async function generateMetadata(): Promise<Metadata> {
         "Investment Calculator with Compound Interest | Free Retirement Planning Tool",
       description:
         "Calculate investment growth with compound interest. Plan for retirement and wealth building with detailed projections.",
-      images: ["/og-investment-calculator.jpg"],
+      images: ["/finance_cal_og.png"],
     },
     alternates: {
       canonical: "/calculators/investment",

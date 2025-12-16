@@ -41,7 +41,7 @@ export async function generateMetadata(): Promise<Metadata> {
       url: "/calculators/loan-declining",
       images: [
         {
-          url: "/og-loan-declining-calculator.jpg",
+          url: "/finance_cal_og.png",
           width: 1200,
           height: 630,
           alt: "Declining Balance Loan Calculator - Monthly Payment Calculator",
@@ -53,7 +53,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: "Declining Balance Loan Calculator | Monthly Payment Calculator",
       description:
         "Calculate declining balance loan payments with detailed payment schedules. Plan mortgages, personal loans, and auto loans.",
-      images: ["/og-loan-declining-calculator.jpg"],
+      images: ["/finance_cal_og.png"],
     },
     alternates: {
       canonical: "/calculators/loan-declining",
