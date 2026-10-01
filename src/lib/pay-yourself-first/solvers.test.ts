@@ -1,22 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  type PlanInputs,
-  solveInvestment,
-  solveSavings,
-  solveSpending,
-} from "./solvers";
-
-const MONTHLY = 12;
-
-const STEP_1_INPUTS: PlanInputs = {
-  currentAge: 30,
-  currentSavings: 0,
-  contributionAmount: 0,
-  annualReturn: 7,
-  retirementAge: 50,
-  lifeExpectancy: 90,
-  spendingAmount: 50_000_000,
-};
+import { solveInvestment, solveSavings, solveSpending } from "./solvers";
+import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
 
 describe("solveInvestment", () => {
   it("finds the monthly investment whose pot pays the spending until life expectancy", () => {

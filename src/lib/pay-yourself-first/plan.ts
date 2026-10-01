@@ -3,6 +3,7 @@ import {
   PayFieldId,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { buildSchedule } from "./schedule";
+import { solveRetirementAge } from "./solve-ages";
 import { solveReturn } from "./solve-return";
 import {
   type PlanInputs,
@@ -10,6 +11,19 @@ import {
   solveSavings,
   solveSpending,
 } from "./solvers";
+
+interface Solver {
+  (inputs: PlanInputs, periodsPerYear: number): number;
+}
+
+/** Field ids equal PlanInputs keys, so each solver's answer can be written straight back into the inputs */
+const SOLVERS: Partial<Record<PayFieldId, Solver>> = {
+  [PayFieldId.ContributionAmount]: solveInvestment,
+  [PayFieldId.CurrentSavings]: solveSavings,
+  [PayFieldId.AnnualReturn]: solveReturn,
+  [PayFieldId.SpendingAmount]: solveSpending,
+  [PayFieldId.RetirementAge]: solveRetirementAge,
+};
 
 /**
  * Solves the one empty field of the plan and returns the result for display.
@@ -23,40 +37,21 @@ export function solvePlan(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): PayCalculationResult {
-  let solved: number;
-  let investment = inputs.contributionAmount;
-  let savings = inputs.currentSavings;
-  let annualReturn = inputs.annualReturn;
-  let spending = inputs.spendingAmount;
-  switch (solveFor) {
-    case PayFieldId.ContributionAmount:
-      solved = solveInvestment(inputs, periodsPerYear);
-      investment = solved;
-      break;
-    case PayFieldId.CurrentSavings:
-      solved = solveSavings(inputs, periodsPerYear);
-      savings = solved;
-      break;
-    case PayFieldId.AnnualReturn:
-      solved = solveReturn(inputs, periodsPerYear);
-      annualReturn = solved;
-      break;
-    case PayFieldId.SpendingAmount:
-      solved = solveSpending(inputs, periodsPerYear);
-      spending = solved;
-      break;
-    default:
-      throw new Error("This calculation is not available yet");
-  }
+  const solver = SOLVERS[solveFor];
+  if (!solver) throw new Error("This calculation is not available yet");
 
+  const solved = solver(inputs, periodsPerYear);
+  const plan = { ...inputs, [solveFor]: solved };
+
+  // The schedule always comes from the solved plan, whichever field was solved
   const schedule = buildSchedule({
-    currentAge: inputs.currentAge,
-    retirementAge: inputs.retirementAge,
-    endAge: inputs.lifeExpectancy,
-    currentSavings: savings,
-    investment,
-    spending,
-    annualReturn,
+    currentAge: plan.currentAge,
+    retirementAge: plan.retirementAge,
+    endAge: plan.lifeExpectancy,
+    currentSavings: plan.currentSavings,
+    investment: plan.contributionAmount,
+    spending: plan.spendingAmount,
+    annualReturn: plan.annualReturn,
     periodsPerYear,
   });
 
@@ -68,6 +63,6 @@ export function solvePlan(
     totalInvested: schedule.totalInvested,
     totalSpent: schedule.totalSpent,
     moneyLeft: schedule.finalBalance,
-    finalAge: inputs.lifeExpectancy,
+    finalAge: plan.lifeExpectancy,
   };
 }

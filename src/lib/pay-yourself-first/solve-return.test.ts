@@ -2,18 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildSchedule } from "./schedule";
 import { solveReturn } from "./solve-return";
 import { type PlanInputs, surplus } from "./solvers";
-
-const MONTHLY = 12;
-
-const STEP_1_INPUTS: PlanInputs = {
-  currentAge: 30,
-  currentSavings: 0,
-  contributionAmount: 0,
-  annualReturn: 7,
-  retirementAge: 50,
-  lifeExpectancy: 90,
-  spendingAmount: 50_000_000,
-};
+import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
 
 describe("solveReturn", () => {
   const INPUTS: PlanInputs = {
