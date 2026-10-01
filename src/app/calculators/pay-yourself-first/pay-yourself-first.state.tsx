@@ -41,6 +41,8 @@ function payReducer(state: PayState, action: PayAction): PayState {
           [action.payload.fieldId]: action.payload.value,
         },
         formErrors: otherErrors,
+        // The old result no longer matches the form
+        result: null,
       };
     }
     case PayActionType.SetResult:
