@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { type PlanInputs, solveInvestment } from "./solvers";
+import { type PlanInputs, solveInvestment, solveSpending } from "./solvers";
 
 const MONTHLY = 12;
 
 const STEP_1_INPUTS: PlanInputs = {
   currentAge: 30,
   currentSavings: 0,
+  contributionAmount: 0,
   annualReturn: 7,
   retirementAge: 50,
   lifeExpectancy: 90,
@@ -41,5 +42,55 @@ describe("solveInvestment", () => {
 
     // Then no monthly investment is left to make
     expect(investment).toBeCloseTo(0, 2);
+  });
+});
+
+describe("solveSpending", () => {
+  it("finds the monthly spending that the reference investment pays for", () => {
+    // Given the exact investment the reference plan needs, spending to be found
+    const spending = solveSpending(
+      { ...STEP_1_INPUTS, contributionAmount: 15_535_539.322543 },
+      MONTHLY,
+    );
+
+    // Then it is the reference 50,000,000
+    expect(spending).toBeCloseTo(50_000_000, 3);
+  });
+
+  it("grows current savings over the saving years when finding the spending", () => {
+    // Given savings and a monthly investment that exactly fund 50,000,000 a month at 7%
+    const spending = solveSpending(
+      {
+        ...STEP_1_INPUTS,
+        currentSavings: 713_987_736.63,
+        contributionAmount: 10_000_000,
+      },
+      MONTHLY,
+    );
+
+    // Then the spending found is the reference 50,000,000
+    expect(spending).toBeCloseTo(50_000_000, 2);
+  });
+
+  it("spreads the saved total evenly over the retired months when the return is 0%", () => {
+    // Given 240 months of 100,000,000 with no growth, paid out over 480 months
+    const spending = solveSpending(
+      { ...STEP_1_INPUTS, annualReturn: 0, contributionAmount: 100_000_000 },
+      MONTHLY,
+    );
+
+    // Then each retired month gets 50,000,000
+    expect(spending).toBeCloseTo(50_000_000, 3);
+  });
+
+  it("can spend nothing when life expectancy equals the retirement age", () => {
+    // Given life expectancy equal to retirement age, so no retired periods remain
+    const spending = solveSpending(
+      { ...STEP_1_INPUTS, contributionAmount: 1_000_000, lifeExpectancy: 50 },
+      MONTHLY,
+    );
+
+    // Then the answer is 0, not a divide-by-zero infinity
+    expect(spending).toBe(0);
   });
 });

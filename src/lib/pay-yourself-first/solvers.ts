@@ -1,6 +1,7 @@
 export interface PlanInputs {
   currentAge: number;
   currentSavings: number;
+  contributionAmount: number;
   annualReturn: number;
   retirementAge: number;
   lifeExpectancy: number;
@@ -86,4 +87,36 @@ export function solveInvestment(
 
   // Deposits land at the end of each period
   return (potNeeded - savingsAtRetirement) / growthFactor(i, savingPeriods);
+}
+
+/**
+ * Finds the amount that can be spent each period in retirement given the investing.
+ * @param inputs - Every plan value except the spending amount
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @returns Spending amount per period
+ */
+export function solveSpending(
+  inputs: PlanInputs,
+  periodsPerYear: number,
+): number {
+  const i = ratePerPeriod(inputs.annualReturn, periodsPerYear);
+  const savingPeriods = periodsBetween(
+    inputs.currentAge,
+    inputs.retirementAge,
+    periodsPerYear,
+  );
+  const retiredPeriods = periodsBetween(
+    inputs.retirementAge,
+    inputs.lifeExpectancy,
+    periodsPerYear,
+  );
+
+  // Deposits land at the end of each period
+  const pot =
+    inputs.currentSavings * (1 + i) ** savingPeriods +
+    inputs.contributionAmount * growthFactor(i, savingPeriods);
+
+  // No retired periods would divide by zero; nothing can be spent
+  if (retiredPeriods === 0) return 0;
+  return pot / drawdownFactor(i, retiredPeriods);
 }

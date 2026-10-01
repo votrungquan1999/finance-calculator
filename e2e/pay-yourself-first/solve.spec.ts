@@ -4,6 +4,7 @@ import {
   fillPlan,
   openCalculator,
   STEP_1_INPUTS,
+  summaryNumber,
   summaryValue,
 } from "./helpers";
 
@@ -22,5 +23,60 @@ test.describe("A saver finds out how much to invest each month", () => {
     await expect(
       summaryValue(page, "Monthly Investment (Calculated)"),
     ).toHaveText("$15,535,539.32");
+  });
+});
+
+test.describe("A saver finds out how much they can spend each month in retirement", () => {
+  test("shows the monthly spending their investing can pay for, ending at $0.00", async ({
+    page,
+  }) => {
+    // Given the reference plan with the exact monthly investment typed and spending left empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      contributionAmount: "15535539.322543",
+      spendingAmount: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the calculated spending is the reference 50,000,000 (to the dollar)
+    const spending = await summaryNumber(page, "Monthly Spending (Calculated)");
+    expect(Math.abs(spending - 50_000_000)).toBeLessThan(1);
+
+    // And the money is used up at life expectancy
+    await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");
+  });
+
+  test("shows what a saver who has already stopped working can spend from their savings", async ({
+    page,
+  }) => {
+    // Given a saver aged 60 who retires at 60, with 5,000,000,000 saved and nothing invested
+    await openCalculator(page);
+    await fillPlan(page, {
+      currentAge: "60",
+      currentSavings: "5000000000",
+      contributionAmount: "0",
+      annualReturn: "7",
+      retirementAge: "60",
+      lifeExpectancy: "90",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the spending is what 5,000,000,000 pays for 30 years
+    await expect(
+      summaryValue(page, "Monthly Spending (Calculated)"),
+    ).toHaveText("$33,072,203.57");
+
+    // And every one of the 360 rows is retired, ending at $0.00 at age 89
+    await page.getByRole("button", { name: "Show All (360 rows)" }).click();
+    const rows = page.locator("tbody tr");
+    await expect(rows).toHaveCount(360);
+    await expect(rows.first().locator("td").nth(2)).toHaveText("Retired");
+    await expect(rows.last().locator("td").nth(1)).toHaveText("89");
+    await expect(rows.last().locator("td").nth(5)).toHaveText("$0.00");
   });
 });

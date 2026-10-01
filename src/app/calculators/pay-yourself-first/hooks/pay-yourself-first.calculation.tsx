@@ -43,6 +43,7 @@ export const useCalculationLogic = () => {
     const inputs: PlanInputs = {
       currentAge: num(PayFieldId.CurrentAge),
       currentSavings: num(PayFieldId.CurrentSavings),
+      contributionAmount: num(PayFieldId.ContributionAmount),
       annualReturn: num(PayFieldId.AnnualReturn),
       retirementAge: num(PayFieldId.RetirementAge),
       lifeExpectancy: num(PayFieldId.LifeExpectancy),

@@ -72,3 +72,17 @@ export function summaryTile(page: Page, label: string): Locator {
 export function summaryValue(page: Page, label: string): Locator {
   return summaryTile(page, label).getByRole("button");
 }
+
+/**
+ * Reads a currency tile as a number, for answers that are only exact to the cent the saver typed.
+ * @param page - Playwright page
+ * @param label - Exact tile label
+ * @returns The tile's amount as a number
+ */
+export async function summaryNumber(
+  page: Page,
+  label: string,
+): Promise<number> {
+  const text = await summaryValue(page, label).innerText();
+  return Number(text.replace(/[$,]/g, ""));
+}
