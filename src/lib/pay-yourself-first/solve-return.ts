@@ -14,6 +14,9 @@ export function solveReturn(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): number {
+  // With no growth already funded, bisecting would only converge toward a float-dust rate
+  if (surplus({ ...inputs, annualReturn: 0 }, periodsPerYear) >= 0) return 0;
+
   let low = 0;
   let high = MAX_RETURN;
 

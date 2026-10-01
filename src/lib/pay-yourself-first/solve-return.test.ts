@@ -52,6 +52,28 @@ describe("solveReturn", () => {
     expect(schedule.finalBalance).toBeLessThan(1);
   });
 
+  it("returns exactly 0 when the plan already works with no growth", () => {
+    // Given savings of 22,000,000,000 and investing of 10,000,000: 24.4 billion against 24 billion needed
+    const rate = solveReturn(
+      { ...INPUTS, currentSavings: 22_000_000_000 },
+      MONTHLY,
+    );
+
+    // Then no return is needed, exactly (not a float-dust 5e-324)
+    expect(rate).toBe(0);
+  });
+
+  it("returns exactly 0 when savings alone exactly cover the spending", () => {
+    // Given savings of 24,000,000,000 against 480 months of 50,000,000 and no investing: surplus at 0% is exactly 0
+    const rate = solveReturn(
+      { ...STEP_1_INPUTS, currentSavings: 24_000_000_000 },
+      MONTHLY,
+    );
+
+    // Then no return is needed, not a float-dust rate from bisecting
+    expect(rate).toBe(0);
+  });
+
   it("rounds to the funded side, so the plan at the answer is never short", () => {
     // When the solved rate is fed back into the plan
     const rate = solveReturn(INPUTS, MONTHLY);

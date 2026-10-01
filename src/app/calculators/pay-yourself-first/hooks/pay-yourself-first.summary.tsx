@@ -1,5 +1,6 @@
 "use client";
 
+import type { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { formatPercentage } from "src/lib/calculations";
 import { useRawPayState } from "../pay-yourself-first.state";
 import {
@@ -7,6 +8,7 @@ import {
   PAY_FIELDS,
   type PayCalculationResult,
   PayFieldId,
+  PERIOD_DETAILS,
   PlanOutcome,
   type SummaryItem,
 } from "../pay-yourself-first.type";
@@ -47,6 +49,34 @@ function buildSolvedTile(
   return { label, value, type: "currency" };
 }
 
+/** What "already enough" means differs per field, so each gets its own wording */
+const ALREADY_ENOUGH_NOTES: Partial<
+  Record<PayFieldId, (periodAdjective: string) => string>
+> = {
+  [PayFieldId.ContributionAmount]: () =>
+    "You already have enough — no extra investing is needed",
+  [PayFieldId.CurrentSavings]: (periodAdjective) =>
+    `Your ${periodAdjective} investing alone is enough — you need no savings today`,
+  [PayFieldId.AnnualReturn]: () => "Your plan works even at a 0% return",
+  [PayFieldId.RetirementAge]: () => "You can already stop working",
+};
+
+/**
+ * Builds the note tile shown under an "already enough" answer.
+ * @param result - The calculation result
+ * @param period - The period the plan is in, so the note names the right investing
+ * @returns The note tile, or nothing when the answer needs no note
+ */
+function buildNoteTiles(
+  result: PayCalculationResult,
+  period: ContributionPeriod,
+): SummaryItem[] {
+  const note = ALREADY_ENOUGH_NOTES[result.solvedField];
+  if (result.outcome !== PlanOutcome.AlreadyEnough || !note) return [];
+  const adjective = PERIOD_DETAILS[period].adjective.toLowerCase();
+  return [{ label: "Note", value: note(adjective), type: "text" }];
+}
+
 /**
  * Hook that builds the summary tiles shown above the schedule
  */
@@ -69,6 +99,7 @@ export const useCalculationSummary = () => {
 
     return [
       solvedTile,
+      ...buildNoteTiles(result, formValues.period),
       {
         label: "Pot at retirement",
         value: result.potAtRetirement,

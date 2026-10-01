@@ -3,6 +3,12 @@ import type { PlanInputs } from "./solvers";
 /** Periods per year for a monthly plan */
 export const MONTHLY = 12;
 
+/** Periods per year for a weekly plan */
+export const WEEKLY = 52;
+
+/** Periods per year for a yearly plan */
+export const YEARLY = 1;
+
 /** Age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000 a month */
 export const STEP_1_INPUTS: PlanInputs = {
   currentAge: 30,

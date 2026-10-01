@@ -73,3 +73,137 @@ test.describe("A saver whose money runs out only after 100 is told so", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("A saver who already has enough investing is not shown a negative amount", () => {
+  test("shows $0.00 and a note when current savings alone cover the plan", async ({
+    page,
+  }) => {
+    // Given savings of 2,500,000,000, more than the plan needs
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      currentSavings: "2500000000",
+      contributionAmount: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then no investing is needed
+    await expect(
+      summaryValue(page, "Monthly Investment (Calculated)"),
+    ).toHaveText("$0.00");
+
+    // And a note says why
+    await expect(summaryText(page, "Note")).toHaveText(
+      "You already have enough — no extra investing is needed",
+    );
+
+    // And the plan ends with money left over, not at $0
+    await expect(summaryValue(page, "Money left at 90")).toHaveText(
+      "$32,687,587,677.62",
+    );
+  });
+});
+
+test.describe("A saver whose investing alone is enough needs no savings", () => {
+  test("shows $0.00 and a note that names the investing", async ({ page }) => {
+    // Given monthly investing of 20,000,000, more than the plan needs
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      contributionAmount: "20000000",
+      currentSavings: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then no savings are needed today
+    await expect(summaryValue(page, "Current Savings (Calculated)")).toHaveText(
+      "$0.00",
+    );
+
+    // And the note credits the investing, not the savings
+    await expect(summaryText(page, "Note")).toHaveText(
+      "Your monthly investing alone is enough — you need no savings today",
+    );
+  });
+});
+
+test.describe("A saver whose plan works with no growth is not shown a negative return", () => {
+  test("shows 0.00% and a note that the plan works even at a 0% return", async ({
+    page,
+  }) => {
+    // Given savings of 22,000,000,000 and investing of 10,000,000: 24.4 billion, above the 24 billion needed with no growth
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      currentSavings: "22000000000",
+      contributionAmount: "10000000",
+      annualReturn: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the needed return is 0.00%
+    await expect(
+      summaryText(page, "Annual Return (%) (Calculated)"),
+    ).toHaveText("0.00%");
+
+    // And the note says why
+    await expect(summaryText(page, "Note")).toHaveText(
+      "Your plan works even at a 0% return",
+    );
+
+    // And the plan ends with money left over
+    await expect(summaryValue(page, "Money left at 90")).toHaveText(
+      "$400,000,000.00",
+    );
+  });
+});
+
+test.describe("A saver who can already stop working is told so", () => {
+  test("shows their current age, a note, and a schedule that is all retirement", async ({
+    page,
+  }) => {
+    // Given savings of 9,000,000,000, enough to retire today
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      currentSavings: "9000000000",
+      contributionAmount: "0",
+      retirementAge: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the earliest age is today's age
+    await expect(summaryText(page, "Retirement Age (Calculated)")).toHaveText(
+      "30",
+    );
+
+    // And the note says they can stop now
+    await expect(summaryText(page, "Note")).toHaveText(
+      "You can already stop working",
+    );
+
+    // And every row is retirement, with the whole 60 years tabulated
+    await page.getByRole("button", { name: "Show All (720 rows)" }).click();
+    const rows = page.locator("tbody tr");
+    await expect(rows).toHaveCount(720);
+    await expect(
+      rows.locator("td:nth-child(3)", { hasText: "Retired" }),
+    ).toHaveCount(720);
+
+    // And the pot at retirement is just the savings, with money left at 90
+    await expect(summaryValue(page, "Pot at retirement")).toHaveText(
+      "$9,000,000,000.00",
+    );
+    await expect(summaryValue(page, "Money left at 90")).toHaveText(
+      "$33,560,779,694.13",
+    );
+  });
+});

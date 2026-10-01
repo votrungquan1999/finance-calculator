@@ -70,6 +70,8 @@ export enum PlanOutcome {
   NeverRunsOut = "NEVER_RUNS_OUT",
   /** The money does run out, but only after the schedule cap age */
   LastsBeyondCap = "LASTS_BEYOND_CAP",
+  /** The saver needs nothing more for this field, so it shows 0 (or the current age) */
+  AlreadyEnough = "ALREADY_ENOUGH",
 }
 
 export enum Phase {
