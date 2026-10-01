@@ -48,6 +48,7 @@ Start with [repo_knowledge/README.md](./repo_knowledge/README.md) for a guided o
 - `loan-annuity` - Annuity loans (equal monthly payments)
 - `loan-fee` - Loan fee analysis (initial fee + equivalent interest rate)
 - `investment` - Recurring investment calculator with compound interest
+- `pay-yourself-first` - Retirement planner that solves for any one of seven values (investing, spending, savings, return, ages)
 
 ### Architecture Details
 

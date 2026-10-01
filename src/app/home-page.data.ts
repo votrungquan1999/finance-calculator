@@ -1,4 +1,4 @@
-import { Calculator, DollarSign, TrendingUp } from "lucide-react";
+import { Calculator, DollarSign, PiggyBank, TrendingUp } from "lucide-react";
 import type { CalculatorCard, FAQItem } from "./home-page.type";
 
 export const faqItems: FAQItem[] = [
@@ -79,6 +79,19 @@ export const calculatorCards: CalculatorCard[] = [
       "Optional monthly contributions (can be $0)",
       "Compound interest calculation",
       "Growth visualization",
+    ],
+  },
+  {
+    title: "Pay Yourself First",
+    description:
+      "Plan what to invest today so your savings fund your retirement spending",
+    href: "/calculators/pay-yourself-first",
+    icon: PiggyBank,
+    features: [
+      "Solve for any one of seven values",
+      "Retirement age and life expectancy planning",
+      "Weekly to annual periods",
+      "Saving and retired years schedule",
     ],
   },
 ];

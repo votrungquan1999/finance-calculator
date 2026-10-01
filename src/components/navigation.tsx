@@ -3,6 +3,7 @@ import {
   Calculator,
   DollarSign,
   Home,
+  PiggyBank,
   TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
@@ -63,6 +64,12 @@ const navigationItems: NavigationItem[] = [
     href: "/calculators/investment",
     icon: TrendingUp,
     description: "Investment growth with initial amount and/or contributions",
+  },
+  {
+    title: "Pay Yourself First",
+    href: "/calculators/pay-yourself-first",
+    icon: PiggyBank,
+    description: "Plan how much to invest now to fund your retirement",
   },
 ];
 
