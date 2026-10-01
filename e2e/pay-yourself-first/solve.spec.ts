@@ -5,6 +5,7 @@ import {
   openCalculator,
   STEP_1_INPUTS,
   summaryNumber,
+  summaryText,
   summaryValue,
 } from "./helpers";
 
@@ -105,6 +106,31 @@ test.describe("A saver finds out how much they need to have invested today", () 
     await expect(summaryValue(page, "Total invested")).toHaveText(
       "$3,113,987,736.63",
     );
+
+    // And the money is used up at life expectancy
+    await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");
+  });
+});
+
+test.describe("A saver finds out what yearly return their plan needs", () => {
+  test("shows the yearly return that makes 10,000,000 a month pay for retirement", async ({
+    page,
+  }) => {
+    // Given the reference plan investing 10,000,000 a month, with the annual return left empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      contributionAmount: "10000000",
+      annualReturn: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the return needed is shown to two decimals
+    await expect(
+      summaryText(page, "Annual Return (%) (Calculated)"),
+    ).toHaveText("8.90%");
 
     // And the money is used up at life expectancy
     await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");

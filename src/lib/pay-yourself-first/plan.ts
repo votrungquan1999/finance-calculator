@@ -3,6 +3,7 @@ import {
   PayFieldId,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { buildSchedule } from "./schedule";
+import { solveReturn } from "./solve-return";
 import {
   type PlanInputs,
   solveInvestment,
@@ -25,6 +26,7 @@ export function solvePlan(
   let solved: number;
   let investment = inputs.contributionAmount;
   let savings = inputs.currentSavings;
+  let annualReturn = inputs.annualReturn;
   let spending = inputs.spendingAmount;
   switch (solveFor) {
     case PayFieldId.ContributionAmount:
@@ -34,6 +36,10 @@ export function solvePlan(
     case PayFieldId.CurrentSavings:
       solved = solveSavings(inputs, periodsPerYear);
       savings = solved;
+      break;
+    case PayFieldId.AnnualReturn:
+      solved = solveReturn(inputs, periodsPerYear);
+      annualReturn = solved;
       break;
     case PayFieldId.SpendingAmount:
       solved = solveSpending(inputs, periodsPerYear);
@@ -50,7 +56,7 @@ export function solvePlan(
     currentSavings: savings,
     investment,
     spending,
-    annualReturn: inputs.annualReturn,
+    annualReturn,
     periodsPerYear,
   });
 

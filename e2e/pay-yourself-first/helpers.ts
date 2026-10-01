@@ -86,3 +86,13 @@ export async function summaryNumber(
   const text = await summaryValue(page, label).innerText();
   return Number(text.replace(/[$,]/g, ""));
 }
+
+/**
+ * Finds the text of a summary tile whose value is shown as plain text (no save button), such as a percentage.
+ * @param page - Playwright page
+ * @param label - Exact tile label
+ * @returns Locator for the tile's value text
+ */
+export function summaryText(page: Page, label: string): Locator {
+  return summaryTile(page, label).locator("p").nth(1);
+}

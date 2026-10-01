@@ -151,3 +151,21 @@ export function solveSavings(
   // Discount what the savings must supply back to today
   return (potNeeded - depositsAtRetirement) / (1 + i) ** savingPeriods;
 }
+
+/**
+ * Pot built by retirement minus pot needed at retirement; negative means the plan falls short.
+ * Money left at life expectancy is this times (1+i)^m, so the sign is the same.
+ * @param inputs - Every plan value, including the annual return
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @returns Pot built minus pot needed, both measured at retirement
+ */
+export function surplus(inputs: PlanInputs, periodsPerYear: number): number {
+  const { i, savingPeriods, retiredPeriods } = planShape(
+    inputs,
+    periodsPerYear,
+  );
+  const potBuilt =
+    inputs.currentSavings * (1 + i) ** savingPeriods +
+    inputs.contributionAmount * growthFactor(i, savingPeriods);
+  return potBuilt - inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
+}

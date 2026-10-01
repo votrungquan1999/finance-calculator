@@ -1,9 +1,11 @@
 "use client";
 
+import { formatPercentage } from "src/lib/calculations";
 import { useRawPayState } from "../pay-yourself-first.state";
 import {
   getFieldLabel,
   PAY_FIELDS,
+  PayFieldId,
   type SummaryItem,
 } from "../pay-yourself-first.type";
 
@@ -24,12 +26,26 @@ export const useCalculationSummary = () => {
     );
     if (!solvedField) return [];
 
+    const solvedLabel = `${getFieldLabel(solvedField, formValues.period)} (Calculated)`;
+    const solvedTile: SummaryItem =
+      solvedField.id === PayFieldId.AnnualReturn
+        ? {
+            // Pre-formatted: the shared table would show 3 decimals
+            label: solvedLabel,
+            value: formatPercentage(result.solvedValue, {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            type: "percentage",
+          }
+        : {
+            label: solvedLabel,
+            value: result.solvedValue,
+            type: "currency",
+          };
+
     return [
-      {
-        label: `${getFieldLabel(solvedField, formValues.period)} (Calculated)`,
-        value: result.solvedValue,
-        type: "currency",
-      },
+      solvedTile,
       {
         label: "Pot at retirement",
         value: result.potAtRetirement,
