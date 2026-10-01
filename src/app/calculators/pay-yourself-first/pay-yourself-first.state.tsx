@@ -2,8 +2,10 @@
 
 import { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { createReducerContext } from "src/contexts/createReducerContext";
+import type { CalculatorState } from "src/lib/url-state";
 import {
   type FormValues,
+  PAY_FIELDS,
   type PayAction,
   PayActionType,
   type PayCalculationResult,
@@ -100,4 +102,16 @@ export function usePayResult(): PayCalculationResult | null {
  */
 export function useFormValues(): FormValues {
   return useRawPayState().formValues;
+}
+
+/**
+ * What a shared link carries
+ * @returns The link's content, or undefined while there is nothing to share
+ */
+export function useShareableState(): CalculatorState | undefined {
+  const { formValues } = useRawPayState();
+  const hasTypedField = PAY_FIELDS.some((field) =>
+    formValues[field.id]?.trim(),
+  );
+  return hasTypedField ? { values: formValues } : undefined;
 }

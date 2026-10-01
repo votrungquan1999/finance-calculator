@@ -2,7 +2,11 @@
 
 import { ResultsTable, type TableColumn } from "src/components/results-table";
 import { useCalculationSummary } from "../hooks/pay-yourself-first.summary";
-import { usePayResult, usePeriod } from "../pay-yourself-first.state";
+import {
+  usePayResult,
+  usePeriod,
+  useShareableState,
+} from "../pay-yourself-first.state";
 import { PERIOD_DETAILS } from "../pay-yourself-first.type";
 
 /**
@@ -12,6 +16,7 @@ export function ResultsTableWithData() {
   const result = usePayResult();
   const period = usePeriod();
   const { getSummary } = useCalculationSummary();
+  const shareableState = useShareableState();
 
   // Only rendered once a result exists (see ResultsWrapper)
   if (!result) return null;
@@ -38,6 +43,7 @@ export function ResultsTableWithData() {
       summary={getSummary()}
       filename="pay-yourself-first-schedule"
       calculatorSource="Pay Yourself First"
+      shareableState={shareableState}
     />
   );
 }

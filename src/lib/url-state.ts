@@ -5,7 +5,7 @@
 import type { FormValues } from "src/app/calculators/investment/investment-calculator.type";
 
 export interface CalculatorState {
-  values: FormValues;
+  values: object;
   mode?: string;
 }
 
