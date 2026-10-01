@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { PlainWordsError } from "./errors";
 import { buildSchedule } from "./schedule";
 import { solveReturn } from "./solve-return";
-import { type PlanInputs, surplus } from "./solvers";
+import { type PlanInputs, solveInvestment, surplus } from "./solvers";
 import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
 
 describe("solveReturn", () => {
@@ -61,6 +62,33 @@ describe("solveReturn", () => {
 
     // Then no return is needed, exactly (not a float-dust 5e-324)
     expect(rate).toBe(0);
+  });
+
+  it("explains in plain words when even 50% would not fund the plan", () => {
+    // Given one working year and investing of only 1,000 a month
+    const inputs = {
+      ...STEP_1_INPUTS,
+      retirementAge: 31,
+      contributionAmount: 1_000,
+    };
+
+    // When finding the return, then it refuses with the saver-facing message
+    expect(() => solveReturn(inputs, MONTHLY)).toThrow(PlainWordsError);
+    expect(() => solveReturn(inputs, MONTHLY)).toThrow(
+      "This plan would need a return above 50% a year, which is not realistic. Try investing more, retiring later, or spending less.",
+    );
+  });
+
+  it("still answers 50% when exactly 50% is what the plan needs", () => {
+    // Given an investment solved so that 50% a year is exactly enough
+    const plan = { ...STEP_1_INPUTS, annualReturn: 50 };
+    const contributionAmount = solveInvestment(plan, MONTHLY);
+
+    // When finding the return
+    const rate = solveReturn({ ...plan, contributionAmount }, MONTHLY);
+
+    // Then 50% is a result, not the unreachable message
+    expect(rate).toBeCloseTo(50, 6);
   });
 
   it("returns exactly 0 when savings alone exactly cover the spending", () => {

@@ -115,7 +115,8 @@ function classifyOutcome(
 ): PlanOutcome {
   if (alreadyEnough) return PlanOutcome.AlreadyEnough;
   if (solveFor !== PayFieldId.LifeExpectancy) return PlanOutcome.Solved;
-  if (!Number.isFinite(solved)) return PlanOutcome.NeverRunsOut;
+  // Only +Infinity means "never runs out"; NaN or -Infinity is a bug, caught by the finite check below
+  if (solved === Number.POSITIVE_INFINITY) return PlanOutcome.NeverRunsOut;
   // Exactly the cap age is still a normal answer
   return solved > cap ? PlanOutcome.LastsBeyondCap : PlanOutcome.Solved;
 }
@@ -180,6 +181,10 @@ export function solvePlan(
     outcome === PlanOutcome.LastsBeyondCap;
   const endAge = outlastsCap ? cap : plan.lifeExpectancy;
 
+  // Infinity is how "never runs out" is marked; for a normal answer it means overflow, a bug rather than something to show
+  if (outcome !== PlanOutcome.NeverRunsOut && !Number.isFinite(solved))
+    throw new Error(`Solved ${solveFor} is not a finite number: ${solved}`);
+
   // The schedule always comes from the solved plan, whichever field was solved
   const schedule = buildSchedule({
     currentAge: plan.currentAge,
@@ -191,6 +196,17 @@ export function solvePlan(
     annualReturn: plan.annualReturn,
     periodsPerYear,
   });
+
+  // Overflowing totals would show as "$∞"; a bug rather than something to tell the saver
+  const totals = {
+    potAtRetirement: schedule.potAtRetirement,
+    totalInvested: schedule.totalInvested,
+    totalSpent: schedule.totalSpent,
+    finalBalance: schedule.finalBalance,
+  };
+  for (const [name, total] of Object.entries(totals))
+    if (!Number.isFinite(total))
+      throw new Error(`Schedule ${name} is not a finite number: ${total}`);
 
   const moneyLeft = snapSolvedBalance(solveFor, outcome, schedule);
   // Keep the table's last Balance in step with the snapped summary figure

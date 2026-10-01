@@ -1,3 +1,5 @@
+import { PlainWordsError } from "./errors";
+
 export interface PlanInputs {
   currentAge: number;
   currentSavings: number;
@@ -119,6 +121,7 @@ export function potNeeded(
  * @param inputs - Every plan value except the investment amount
  * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Investment amount per period
+ * @throws PlainWordsError when the saver has no working periods left
  */
 export function solveInvestment(
   inputs: PlanInputs,
@@ -128,6 +131,12 @@ export function solveInvestment(
     inputs,
     periodsPerYear,
   );
+
+  // No working periods means no deposits to size
+  if (savingPeriods === 0)
+    throw new PlainWordsError(
+      "You've already stopped working, so there's nothing to invest. Leave a different field empty instead.",
+    );
 
   const savingsAtRetirement = inputs.currentSavings * (1 + i) ** savingPeriods;
 

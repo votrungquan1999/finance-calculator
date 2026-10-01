@@ -1,3 +1,4 @@
+import { PlainWordsError } from "./errors";
 import {
   type PlanInputs,
   periodsBetween,
@@ -47,6 +48,7 @@ function isFundedAtLifeExpectancy(
  * @param inputs - Every plan value except the retirement age
  * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Retirement age in whole years
+ * @throws PlainWordsError when no whole age before life expectancy works
  */
 export function solveRetirementAge(
   inputs: PlanInputs,
@@ -62,8 +64,8 @@ export function solveRetirementAge(
     )
       return age;
   }
-  throw new Error(
-    "The money cannot last unless the saver works until life expectancy",
+  throw new PlainWordsError(
+    "You would have to keep working until your life expectancy. Try investing more or spending less.",
   );
 }
 
@@ -72,6 +74,7 @@ export function solveRetirementAge(
  * @param inputs - Every plan value except the life expectancy
  * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Life expectancy in whole years
+ * @throws PlainWordsError when the money would not last one whole year
  */
 export function solveLifeExpectancy(
   inputs: PlanInputs,
@@ -106,6 +109,9 @@ export function solveLifeExpectancy(
     years--;
 
   // Under one whole year there is nothing sensible to show
-  if (years < 1) throw new Error("The money lasts less than one whole year");
+  if (years < 1)
+    throw new PlainWordsError(
+      "Your savings would run out within the first year of retirement. Try investing more, retiring later, or spending less.",
+    );
   return inputs.retirementAge + years;
 }

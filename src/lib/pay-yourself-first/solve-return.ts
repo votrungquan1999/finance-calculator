@@ -1,3 +1,5 @@
+import { PlainWordsError } from "./errors";
+import { isFunded } from "./solve-ages";
 import { type PlanInputs, surplus } from "./solvers";
 
 /** Highest yearly return (percent) the solver will consider */
@@ -9,6 +11,7 @@ const MAX_RETURN = 50;
  * @param inputs - Every plan value except the annual return
  * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Annual return in percent
+ * @throws PlainWordsError when even the highest return considered cannot fund the plan
  */
 export function solveReturn(
   inputs: PlanInputs,
@@ -16,6 +19,12 @@ export function solveReturn(
 ): number {
   // With no growth already funded, bisecting would only converge toward a float-dust rate
   if (surplus({ ...inputs, annualReturn: 0 }, periodsPerYear) >= 0) return 0;
+
+  // Even the ceiling falls short: bisecting would silently answer 50% with money missing
+  if (!isFunded({ ...inputs, annualReturn: MAX_RETURN }, periodsPerYear))
+    throw new PlainWordsError(
+      "This plan would need a return above 50% a year, which is not realistic. Try investing more, retiring later, or spending less.",
+    );
 
   let low = 0;
   let high = MAX_RETURN;

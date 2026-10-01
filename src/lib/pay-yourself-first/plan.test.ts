@@ -3,6 +3,7 @@ import {
   PayFieldId,
   PlanOutcome,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
+import { PlainWordsError } from "./errors";
 import { solvePlan } from "./plan";
 import { solveInvestment, solveSavings } from "./solvers";
 import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
@@ -179,5 +180,27 @@ describe("solvePlan already enough", () => {
     // Then spending is 0, an empty pot rather than "already enough"
     expect(result.solvedValue).toBe(0);
     expect(result.outcome).toBe(PlanOutcome.Solved);
+  });
+});
+
+describe("solvePlan non-finite answers", () => {
+  it("treats an overflowing answer as an unexpected error, not a plain-words one", () => {
+    // Given savings so large that the pot overflows a double
+    const inputs = { ...STEP_1_INPUTS, currentSavings: 9e307 };
+
+    // When solving for the spending, then it throws a bug-style error that is not meant for the saver
+    const solve = () => solvePlan(PayFieldId.SpendingAmount, inputs, MONTHLY);
+    expect(solve).toThrow(Error);
+    expect(solve).not.toThrow(PlainWordsError);
+  });
+
+  it("treats an already-enough answer whose amounts overflow as an unexpected error too", () => {
+    // Given savings so large that retiring now works, but the pot and money left are infinite
+    const inputs = { ...STEP_1_INPUTS, currentSavings: 9e307 };
+
+    // When solving for the retirement age, then it throws a bug-style error instead of showing "$∞"
+    const solve = () => solvePlan(PayFieldId.RetirementAge, inputs, MONTHLY);
+    expect(solve).toThrow(Error);
+    expect(solve).not.toThrow(PlainWordsError);
   });
 });

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PlainWordsError } from "./errors";
 import { solveLifeExpectancy, solveRetirementAge } from "./solve-ages";
 import { solveInvestment, surplus } from "./solvers";
 import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
@@ -85,6 +86,28 @@ describe("solveRetirementAge", () => {
       1.2938 ** (89 - solved);
     expect(leftAtLifeExpectancy).toBeGreaterThanOrEqual(0);
   });
+
+  it("explains in plain words when no whole age before life expectancy works", () => {
+    // Given investing of only 1,000 a month
+    const inputs = { ...STEP_1_INPUTS, contributionAmount: 1_000 };
+
+    // When finding the retirement age, then it refuses with the saver-facing message
+    expect(() => solveRetirementAge(inputs, MONTHLY)).toThrow(PlainWordsError);
+    expect(() => solveRetirementAge(inputs, MONTHLY)).toThrow(
+      "You would have to keep working until your life expectancy. Try investing more or spending less.",
+    );
+  });
+
+  it("answers 89 when investing 100,000 a month only just works at the last age", () => {
+    // Given investing of 100,000 a month, enough to retire at 89 but not at 88
+    const inputs = { ...STEP_1_INPUTS, contributionAmount: 100_000 };
+
+    // When finding the retirement age
+    const age = solveRetirementAge(inputs, MONTHLY);
+
+    // Then the last age before life expectancy is a result, not the message
+    expect(age).toBe(89);
+  });
 });
 
 describe("solveLifeExpectancy", () => {
@@ -146,6 +169,51 @@ describe("solveLifeExpectancy", () => {
 
     // Then the zero-rate closed form still gives a whole age
     expect(solved).toBe(90);
+  });
+
+  it("explains in plain words when the money lasts under one year", () => {
+    // Given investing of 5,000,000 a month against spending of 1,000,000,000
+    const inputs = {
+      ...STEP_1_INPUTS,
+      contributionAmount: 5_000_000,
+      spendingAmount: 1_000_000_000,
+    };
+
+    // When finding the life expectancy, then it refuses with the saver-facing message
+    expect(() => solveLifeExpectancy(inputs, MONTHLY)).toThrow(PlainWordsError);
+    expect(() => solveLifeExpectancy(inputs, MONTHLY)).toThrow(
+      "Your savings would run out within the first year of retirement. Try investing more, retiring later, or spending less.",
+    );
+  });
+
+  it("still answers 51 when the money lasts just over one year", () => {
+    // Given spending of 200,000,000 a month, which the pot covers for 13.5 months
+    const inputs = {
+      ...STEP_1_INPUTS,
+      contributionAmount: 5_000_000,
+      spendingAmount: 200_000_000,
+    };
+
+    // When finding the life expectancy
+    const age = solveLifeExpectancy(inputs, MONTHLY);
+
+    // Then one whole retired year is a result, not the message
+    expect(age).toBe(51);
+  });
+
+  it("still answers 51 when the money lasts to the very edge of twelve months", () => {
+    // Given spending of 224,063,407.60 a month, the most the pot covers for 12 months (.61 would fall just short)
+    const inputs = {
+      ...STEP_1_INPUTS,
+      contributionAmount: 5_000_000,
+      spendingAmount: 224_063_407.6,
+    };
+
+    // When finding the life expectancy
+    const age = solveLifeExpectancy(inputs, MONTHLY);
+
+    // Then exactly one year counts, not zero
+    expect(age).toBe(51);
   });
 
   it("says the money never runs out when the pot's yearly growth exactly equals one draw", () => {

@@ -2,6 +2,7 @@
 
 import type { FormEvent } from "react";
 import { toast } from "sonner";
+import { PlainWordsError } from "src/lib/pay-yourself-first/errors";
 import { solvePlan } from "src/lib/pay-yourself-first/plan";
 import type { PlanInputs } from "src/lib/pay-yourself-first/solvers";
 import { useRawPayDispatch, useRawPayState } from "../pay-yourself-first.state";
@@ -24,6 +25,9 @@ export const useCalculationLogic = () => {
    */
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
+
+    // Any failure below must leave no old numbers on screen
+    dispatch({ type: PayActionType.SetResult, payload: null });
 
     const { formValues } = state;
     const emptyFields = PAY_FIELDS.filter(
@@ -58,9 +62,13 @@ export const useCalculationLogic = () => {
       );
       dispatch({ type: PayActionType.SetResult, payload: result });
     } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Calculation failed",
-      );
+      // Expected unreachable goals read as plain words; anything else is a bug whose text must stay off screen
+      if (error instanceof PlainWordsError) {
+        toast.error(error.message);
+        return;
+      }
+      console.error("Pay Yourself First calculation failed", error);
+      toast.error("Something went wrong. Please check your inputs.");
     }
   };
 

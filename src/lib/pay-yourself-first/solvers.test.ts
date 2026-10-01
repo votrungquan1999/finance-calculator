@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PlainWordsError } from "./errors";
 import { solveInvestment, solveSavings, solveSpending } from "./solvers";
 import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
 
@@ -31,6 +32,17 @@ describe("solveInvestment", () => {
 
     // Then no monthly investment is left to make
     expect(investment).toBeCloseTo(0, 2);
+  });
+
+  it("explains in plain words that an already retired saver has nothing to invest", () => {
+    // Given a saver whose retirement age equals their current age
+    const inputs = { ...STEP_1_INPUTS, currentAge: 60, retirementAge: 60 };
+
+    // When solving for the investment, then it refuses with the saver-facing message
+    expect(() => solveInvestment(inputs, MONTHLY)).toThrow(PlainWordsError);
+    expect(() => solveInvestment(inputs, MONTHLY)).toThrow(
+      "You've already stopped working, so there's nothing to invest. Leave a different field empty instead.",
+    );
   });
 });
 
