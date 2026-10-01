@@ -3,7 +3,7 @@ import { isFunded } from "./solve-ages";
 import { type PlanInputs, surplus } from "./solvers";
 
 /** Highest yearly return (percent) the solver will consider */
-const MAX_RETURN = 50;
+export const MAX_RETURN = 50;
 
 /**
  * Finds the yearly return (in percent) that makes the plan work, rounding to the funded side.

@@ -82,10 +82,15 @@ export enum Phase {
 export enum PayActionType {
   SetFormValue = "SET_FORM_VALUE",
   SetResult = "SET_RESULT",
+  SetFormErrors = "SET_FORM_ERRORS",
 }
+
+/** Message to show under a field, keyed by the field it belongs to */
+export type FormErrors = Partial<Record<PayFieldId, string>>;
 
 export interface PayState {
   formValues: FormValues;
+  formErrors: FormErrors;
   result: PayCalculationResult | null;
 }
 
@@ -94,7 +99,8 @@ export type PayAction =
       type: PayActionType.SetFormValue;
       payload: { fieldId: PayFieldId; value: string };
     }
-  | { type: PayActionType.SetResult; payload: PayCalculationResult | null };
+  | { type: PayActionType.SetResult; payload: PayCalculationResult | null }
+  | { type: PayActionType.SetFormErrors; payload: FormErrors };
 
 /** One ordered list drives the form, the calculation and the button */
 export const PAY_FIELDS: PayField[] = [

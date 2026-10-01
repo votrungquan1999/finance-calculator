@@ -2,7 +2,7 @@
 
 import { Input } from "src/components/ui/input";
 import { useInputHandlers } from "../hooks/pay-yourself-first.input";
-import { useFieldValue } from "../pay-yourself-first.state";
+import { useFieldError, useFieldValue } from "../pay-yourself-first.state";
 import type { PayField } from "../pay-yourself-first.type";
 
 /**
@@ -10,6 +10,7 @@ import type { PayField } from "../pay-yourself-first.type";
  */
 export function FieldInputWithState({ field }: { field: PayField }) {
   const value = useFieldValue(field.id);
+  const error = useFieldError(field.id);
   const { handleInputChange } = useInputHandlers();
 
   return (
@@ -20,6 +21,8 @@ export function FieldInputWithState({ field }: { field: PayField }) {
       value={value ?? ""}
       onChange={(e) => handleInputChange(field.id, e.target.value)}
       placeholder={field.placeholder}
+      aria-invalid={error ? true : undefined}
+      aria-describedby={error ? `${field.id}-error` : undefined}
     />
   );
 }

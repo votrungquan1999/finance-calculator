@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { PlainWordsError } from "src/lib/pay-yourself-first/errors";
 import { solvePlan } from "src/lib/pay-yourself-first/plan";
 import type { PlanInputs } from "src/lib/pay-yourself-first/solvers";
+import { readNumber } from "src/lib/pay-yourself-first/validation";
 import { useRawPayDispatch, useRawPayState } from "../pay-yourself-first.state";
 import {
   PAY_FIELDS,
@@ -12,6 +13,7 @@ import {
   PayFieldId,
   PERIOD_DETAILS,
 } from "../pay-yourself-first.type";
+import { useFormValidation } from "./pay-yourself-first.validation";
 
 /**
  * Hook with the form submit handler that runs the calculation
@@ -19,6 +21,7 @@ import {
 export const useCalculationLogic = () => {
   const state = useRawPayState();
   const dispatch = useRawPayDispatch();
+  const { validateForm } = useFormValidation();
 
   /**
    * Finds the one empty field and shows the plan that solves it
@@ -38,12 +41,14 @@ export const useCalculationLogic = () => {
       return;
     }
 
+    if (!validateForm()) return;
+
     /**
      * Reads one field as a number; the empty field reads as 0 and is ignored by the solver
      * @param id - Field to read
-     * @returns The typed number, or 0 when the field is empty
+     * @returns The typed number (validation already accepted it), or 0 when the field is empty
      */
-    const num = (id: PayFieldId) => Number(formValues[id] ?? 0);
+    const num = (id: PayFieldId) => readNumber(formValues[id] ?? "") ?? 0;
     const inputs: PlanInputs = {
       currentAge: num(PayFieldId.CurrentAge),
       currentSavings: num(PayFieldId.CurrentSavings),

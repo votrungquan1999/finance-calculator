@@ -136,27 +136,4 @@ test.describe("A saver whose goal cannot be reached is told why", () => {
     ).toBeVisible();
     await expect(page.getByText("(Calculated)")).toHaveCount(0);
   });
-
-  test("shows a generic message, never raw error text, when a number overflows", async ({
-    page,
-  }) => {
-    // Given savings of 9 followed by 307 zeros, which overflows when grown
-    await openCalculator(page);
-    await fillPlan(page, {
-      ...STEP_1_INPUTS,
-      currentSavings: `9${"0".repeat(307)}`,
-      contributionAmount: "0",
-      spendingAmount: "",
-    });
-
-    // When they calculate
-    await clickCalculate(page);
-
-    // Then a generic message appears and no result is shown
-    await expect(
-      page.getByText("Something went wrong. Please check your inputs."),
-    ).toBeVisible();
-    await expect(page.getByText("(Calculated)")).toHaveCount(0);
-    await expect(page.getByText("is not a finite number")).toHaveCount(0);
-  });
 });

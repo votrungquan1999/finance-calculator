@@ -15,6 +15,7 @@ import {
  */
 const initialState: PayState = {
   formValues: { period: ContributionPeriod.Monthly },
+  formErrors: {},
   result: null,
 };
 
@@ -26,16 +27,23 @@ const initialState: PayState = {
  */
 function payReducer(state: PayState, action: PayAction): PayState {
   switch (action.type) {
-    case PayActionType.SetFormValue:
+    case PayActionType.SetFormValue: {
+      // Only the edited field's message goes; cross-field ones wait for the next Calculate
+      const { [action.payload.fieldId]: _edited, ...otherErrors } =
+        state.formErrors;
       return {
         ...state,
         formValues: {
           ...state.formValues,
           [action.payload.fieldId]: action.payload.value,
         },
+        formErrors: otherErrors,
       };
+    }
     case PayActionType.SetResult:
       return { ...state, result: action.payload };
+    case PayActionType.SetFormErrors:
+      return { ...state, formErrors: action.payload };
     default:
       return state;
   }
@@ -59,6 +67,15 @@ export function usePeriod(): PayState["formValues"]["period"] {
  */
 export function useFieldValue(fieldId: PayFieldId): string | undefined {
   return useRawPayState().formValues[fieldId];
+}
+
+/**
+ * Message shown under one field
+ * @param fieldId - Field to read
+ * @returns The message, or undefined while the field has no problem
+ */
+export function useFieldError(fieldId: PayFieldId): string | undefined {
+  return useRawPayState().formErrors[fieldId];
 }
 
 /**
