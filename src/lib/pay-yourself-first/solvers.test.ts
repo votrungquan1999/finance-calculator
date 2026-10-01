@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { type PlanInputs, solveInvestment, solveSpending } from "./solvers";
+import {
+  type PlanInputs,
+  solveInvestment,
+  solveSavings,
+  solveSpending,
+} from "./solvers";
 
 const MONTHLY = 12;
 
@@ -92,5 +97,34 @@ describe("solveSpending", () => {
 
     // Then the answer is 0, not a divide-by-zero infinity
     expect(spending).toBe(0);
+  });
+});
+
+describe("solveSavings", () => {
+  it("finds the savings that the whole pot needs when nothing is invested", () => {
+    // Given no monthly investing, so today's savings alone must grow to the pot
+    const savings = solveSavings(STEP_1_INPUTS, MONTHLY);
+
+    // Then it is the reference pot discounted back 240 months
+    expect(savings).toBeCloseTo(2_003_812_801.59, 2);
+  });
+
+  it("adds the growth of the monthly investment when finding the savings", () => {
+    // Given the reference plan investing 10,000,000 a month, savings to be found
+    const savings = solveSavings(
+      { ...STEP_1_INPUTS, contributionAmount: 10_000_000 },
+      MONTHLY,
+    );
+
+    // Then the investing covers part of the pot and the savings make up the rest
+    expect(savings).toBeCloseTo(713_987_736.63, 2);
+  });
+
+  it("needs savings equal to the pot when the saver is already retired", () => {
+    // Given a saver already at retirement age, with no saving periods left
+    const savings = solveSavings({ ...STEP_1_INPUTS, currentAge: 50 }, MONTHLY);
+
+    // Then the savings must be the whole pot, 8,092,876,607.88
+    expect(savings).toBeCloseTo(8_092_876_607.88, 2);
   });
 });

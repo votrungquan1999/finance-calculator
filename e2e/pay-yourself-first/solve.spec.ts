@@ -80,3 +80,33 @@ test.describe("A saver finds out how much they can spend each month in retiremen
     await expect(rows.last().locator("td").nth(5)).toHaveText("$0.00");
   });
 });
+
+test.describe("A saver finds out how much they need to have invested today", () => {
+  test("shows the savings that, with 10,000,000 invested monthly, pay for retirement", async ({
+    page,
+  }) => {
+    // Given the reference plan investing 10,000,000 a month, with current savings left empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      contributionAmount: "10000000",
+      currentSavings: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the savings needed today are shown
+    await expect(summaryValue(page, "Current Savings (Calculated)")).toHaveText(
+      "$713,987,736.63",
+    );
+
+    // And total invested counts those savings plus 240 deposits of 10,000,000
+    await expect(summaryValue(page, "Total invested")).toHaveText(
+      "$3,113,987,736.63",
+    );
+
+    // And the money is used up at life expectancy
+    await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");
+  });
+});

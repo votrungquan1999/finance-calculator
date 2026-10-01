@@ -60,6 +60,28 @@ function drawdownFactor(i: number, m: number): number {
 }
 
 /**
+ * Rate and period counts shared by every solver.
+ * @param inputs - Plan values
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @returns Rate per period, saving periods and retired periods
+ */
+function planShape(inputs: PlanInputs, periodsPerYear: number) {
+  return {
+    i: ratePerPeriod(inputs.annualReturn, periodsPerYear),
+    savingPeriods: periodsBetween(
+      inputs.currentAge,
+      inputs.retirementAge,
+      periodsPerYear,
+    ),
+    retiredPeriods: periodsBetween(
+      inputs.retirementAge,
+      inputs.lifeExpectancy,
+      periodsPerYear,
+    ),
+  };
+}
+
+/**
  * Finds the amount to invest each period so the savings pay for the spending until life expectancy.
  * @param inputs - Every plan value except the investment amount
  * @param periodsPerYear - Periods in one year (12 for monthly)
@@ -69,15 +91,8 @@ export function solveInvestment(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): number {
-  const i = ratePerPeriod(inputs.annualReturn, periodsPerYear);
-  const savingPeriods = periodsBetween(
-    inputs.currentAge,
-    inputs.retirementAge,
-    periodsPerYear,
-  );
-  const retiredPeriods = periodsBetween(
-    inputs.retirementAge,
-    inputs.lifeExpectancy,
+  const { i, savingPeriods, retiredPeriods } = planShape(
+    inputs,
     periodsPerYear,
   );
 
@@ -99,15 +114,8 @@ export function solveSpending(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): number {
-  const i = ratePerPeriod(inputs.annualReturn, periodsPerYear);
-  const savingPeriods = periodsBetween(
-    inputs.currentAge,
-    inputs.retirementAge,
-    periodsPerYear,
-  );
-  const retiredPeriods = periodsBetween(
-    inputs.retirementAge,
-    inputs.lifeExpectancy,
+  const { i, savingPeriods, retiredPeriods } = planShape(
+    inputs,
     periodsPerYear,
   );
 
@@ -119,4 +127,27 @@ export function solveSpending(
   // No retired periods would divide by zero; nothing can be spent
   if (retiredPeriods === 0) return 0;
   return pot / drawdownFactor(i, retiredPeriods);
+}
+
+/**
+ * Finds the savings needed today so the plan works with the given investing.
+ * @param inputs - Every plan value except the current savings
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @returns Current savings amount
+ */
+export function solveSavings(
+  inputs: PlanInputs,
+  periodsPerYear: number,
+): number {
+  const { i, savingPeriods, retiredPeriods } = planShape(
+    inputs,
+    periodsPerYear,
+  );
+
+  const potNeeded = inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
+  const depositsAtRetirement =
+    inputs.contributionAmount * growthFactor(i, savingPeriods);
+
+  // Discount what the savings must supply back to today
+  return (potNeeded - depositsAtRetirement) / (1 + i) ** savingPeriods;
 }
