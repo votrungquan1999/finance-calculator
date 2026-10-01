@@ -38,6 +38,12 @@ export interface PayCalculationResult {
   solvedField: PayFieldId;
   solvedValue: number;
   schedule: ScheduleRow[];
+  potAtRetirement: number;
+  /** Includes current savings */
+  totalInvested: number;
+  totalSpent: number;
+  moneyLeft: number;
+  finalAge: number;
 }
 
 export interface SummaryItem {

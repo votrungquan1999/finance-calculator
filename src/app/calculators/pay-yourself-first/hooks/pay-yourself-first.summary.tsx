@@ -30,6 +30,26 @@ export const useCalculationSummary = () => {
         value: result.solvedValue,
         type: "currency",
       },
+      {
+        label: "Pot at retirement",
+        value: result.potAtRetirement,
+        type: "currency",
+      },
+      {
+        label: "Total invested",
+        value: result.totalInvested,
+        type: "currency",
+      },
+      {
+        label: "Total spent in retirement",
+        value: result.totalSpent,
+        type: "currency",
+      },
+      {
+        label: `Money left at ${result.finalAge}`,
+        value: result.moneyLeft,
+        type: "currency",
+      },
     ];
   };
 

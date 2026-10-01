@@ -1,8 +1,8 @@
 import {
   type PayCalculationResult,
   PayFieldId,
-  Phase,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
+import { buildSchedule } from "./schedule";
 import { type PlanInputs, solveInvestment } from "./solvers";
 
 /**
@@ -21,21 +21,26 @@ export function solvePlan(
     throw new Error("This calculation is not available yet");
   }
 
+  const investment = solveInvestment(inputs, periodsPerYear);
+  const schedule = buildSchedule({
+    currentAge: inputs.currentAge,
+    retirementAge: inputs.retirementAge,
+    endAge: inputs.lifeExpectancy,
+    currentSavings: inputs.currentSavings,
+    investment,
+    spending: inputs.spendingAmount,
+    annualReturn: inputs.annualReturn,
+    periodsPerYear,
+  });
+
   return {
     solvedField: solveFor,
-    solvedValue: solveInvestment(inputs, periodsPerYear),
-    // Placeholder: the shared table hides the summary when it has no rows
-    schedule: [
-      {
-        month: 1,
-        contribution: 0,
-        interest: 0,
-        totalContributions: 0,
-        totalInterest: 0,
-        totalValue: 0,
-        age: inputs.currentAge,
-        phase: Phase.Saving,
-      },
-    ],
+    solvedValue: investment,
+    schedule: schedule.rows,
+    potAtRetirement: schedule.potAtRetirement,
+    totalInvested: schedule.totalInvested,
+    totalSpent: schedule.totalSpent,
+    moneyLeft: schedule.finalBalance,
+    finalAge: inputs.lifeExpectancy,
   };
 }
