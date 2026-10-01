@@ -9,7 +9,11 @@ import { usePayResult } from "./pay-yourself-first.state";
  * Wrapper for form fields with consistent spacing
  */
 export function FormFieldWrapper({ children }: { children: ReactNode }) {
-  return <div className="space-y-2">{children}</div>;
+  return (
+    <div data-testid="form-field" className="space-y-2">
+      {children}
+    </div>
+  );
 }
 
 /**
@@ -17,6 +21,13 @@ export function FormFieldWrapper({ children }: { children: ReactNode }) {
  */
 export function FieldDescription({ children }: { children: ReactNode }) {
   return <p className="text-sm text-muted-foreground">{children}</p>;
+}
+
+/**
+ * Input with its period selector beside it
+ */
+export function InputWithPeriod({ children }: { children: ReactNode }) {
+  return <div className="grid grid-cols-[1fr_auto] gap-2">{children}</div>;
 }
 
 /**

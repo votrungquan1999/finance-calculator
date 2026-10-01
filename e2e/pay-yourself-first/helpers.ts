@@ -96,3 +96,17 @@ export async function summaryNumber(
 export function summaryText(page: Page, label: string): Locator {
   return summaryTile(page, label).locator("p").nth(1);
 }
+
+/**
+ * Picks a period in the selector; retries the opening click because the page may not be hydrated yet in dev mode.
+ * @param page - Playwright page
+ * @param name - Option text such as "Annually"
+ */
+export async function choosePeriod(page: Page, name: string): Promise<void> {
+  const option = page.getByRole("option", { name, exact: true });
+  await expect(async () => {
+    await page.getByRole("combobox", { name: "Period" }).click();
+    await expect(option).toBeVisible({ timeout: 500 });
+  }).toPass();
+  await option.click();
+}

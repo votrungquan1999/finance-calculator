@@ -1,5 +1,6 @@
 "use client";
 
+import type { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { useRawPayDispatch } from "../pay-yourself-first.state";
 import { PayActionType, type PayFieldId } from "../pay-yourself-first.type";
 
@@ -19,5 +20,13 @@ export const useInputHandlers = () => {
     });
   };
 
-  return { handleInputChange };
+  /**
+   * Switches the period the plan is in
+   * @param period - The period the saver picked
+   */
+  const handlePeriodChange = (period: ContributionPeriod) => {
+    dispatch({ type: PayActionType.SetPeriod, payload: period });
+  };
+
+  return { handleInputChange, handlePeriodChange };
 };

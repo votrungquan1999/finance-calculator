@@ -2,24 +2,13 @@ import { describe, expect, it } from "vitest";
 import { PlainWordsError } from "./errors";
 import { solveLifeExpectancy, solveRetirementAge } from "./solve-ages";
 import { solveInvestment, surplus } from "./solvers";
-import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
-
-const YEARLY = 1;
-
-/**
- * Small seeded random generator so the round-trip cases are the same on every run.
- * @param seed - Starting state
- * @returns Function giving a number in [0, 1) on each call
- */
-function seededRandom(seed: number): () => number {
-  let state = seed;
-  return () => {
-    state = (state + 0x6d2b79f5) | 0;
-    let t = Math.imul(state ^ (state >>> 15), 1 | state);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+import {
+  MONTHLY,
+  randomPlan,
+  STEP_1_INPUTS,
+  seededRandom,
+  YEARLY,
+} from "./test-fixtures";
 
 describe("solveRetirementAge", () => {
   it("rounds up to 51 when the pot at 50 is about two cents short", () => {
@@ -41,16 +30,8 @@ describe("solveRetirementAge", () => {
     // Given many whole-age plans, each with the exact investment for its retirement age
     const random = seededRandom(42);
     for (let k = 0; k < 500; k++) {
-      const currentAge = 20 + Math.floor(random() * 30);
-      const retirementAge = currentAge + 1 + Math.floor(random() * 30);
-      const plan = {
-        ...STEP_1_INPUTS,
-        currentAge,
-        retirementAge,
-        lifeExpectancy: retirementAge + 1 + Math.floor(random() * 40),
-        annualReturn: 1 + random() * 11,
-        spendingAmount: 1_000_000 + Math.floor(random() * 100_000_000),
-      };
+      const plan = randomPlan(random);
+      const { retirementAge } = plan;
       const contributionAmount = solveInvestment(plan, MONTHLY);
 
       // When solving for the retirement age with that investment
@@ -115,17 +96,8 @@ describe("solveLifeExpectancy", () => {
     // Given many whole-age plans, each with the exact investment for its life expectancy
     const random = seededRandom(7);
     for (let k = 0; k < 500; k++) {
-      const currentAge = 20 + Math.floor(random() * 30);
-      const retirementAge = currentAge + 1 + Math.floor(random() * 30);
-      const lifeExpectancy = retirementAge + 1 + Math.floor(random() * 40);
-      const plan = {
-        ...STEP_1_INPUTS,
-        currentAge,
-        retirementAge,
-        lifeExpectancy,
-        annualReturn: 1 + random() * 11,
-        spendingAmount: 1_000_000 + Math.floor(random() * 100_000_000),
-      };
+      const plan = randomPlan(random);
+      const { lifeExpectancy } = plan;
       const contributionAmount = solveInvestment(plan, MONTHLY);
 
       // When solving for the life expectancy with that investment

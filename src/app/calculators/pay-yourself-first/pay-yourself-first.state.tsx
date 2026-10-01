@@ -45,6 +45,13 @@ function payReducer(state: PayState, action: PayAction): PayState {
       return { ...state, result: action.payload };
     case PayActionType.SetFormErrors:
       return { ...state, formErrors: action.payload };
+    case PayActionType.SetPeriod:
+      // Typed digits stay; the old result goes because its labels and note read the live period
+      return {
+        ...state,
+        formValues: { ...state.formValues, period: action.payload },
+        result: null,
+      };
     default:
       return state;
   }

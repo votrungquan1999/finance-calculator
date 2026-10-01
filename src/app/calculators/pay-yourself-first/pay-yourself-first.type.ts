@@ -27,6 +27,8 @@ export interface PeriodDetails {
   adjective: string;
   rowName: string;
   unit: string;
+  /** Wording in the period selector; matches the Investment page */
+  optionLabel: string;
 }
 
 export interface ScheduleRow extends InvestmentResult {
@@ -83,6 +85,7 @@ export enum PayActionType {
   SetFormValue = "SET_FORM_VALUE",
   SetResult = "SET_RESULT",
   SetFormErrors = "SET_FORM_ERRORS",
+  SetPeriod = "SET_PERIOD",
 }
 
 /** Message to show under a field, keyed by the field it belongs to */
@@ -100,7 +103,8 @@ export type PayAction =
       payload: { fieldId: PayFieldId; value: string };
     }
   | { type: PayActionType.SetResult; payload: PayCalculationResult | null }
-  | { type: PayActionType.SetFormErrors; payload: FormErrors };
+  | { type: PayActionType.SetFormErrors; payload: FormErrors }
+  | { type: PayActionType.SetPeriod; payload: ContributionPeriod };
 
 /** One ordered list drives the form, the calculation and the button */
 export const PAY_FIELDS: PayField[] = [
@@ -166,30 +170,35 @@ export const PERIOD_DETAILS: Record<ContributionPeriod, PeriodDetails> = {
     adjective: "Weekly",
     rowName: "Week",
     unit: "week",
+    optionLabel: "Weekly",
   },
   [ContributionPeriod.Monthly]: {
     periodsPerYear: 12,
     adjective: "Monthly",
     rowName: "Month",
     unit: "month",
+    optionLabel: "Monthly",
   },
   [ContributionPeriod.Quarterly]: {
     periodsPerYear: 4,
     adjective: "Quarterly",
     rowName: "Quarter",
     unit: "quarter",
+    optionLabel: "Quarterly",
   },
   [ContributionPeriod.SemiAnnually]: {
     periodsPerYear: 2,
-    adjective: "Semi-annual",
+    adjective: "Semi-Annual",
     rowName: "Half-year",
     unit: "half-year",
+    optionLabel: "Semi-Annually",
   },
   [ContributionPeriod.Annually]: {
     periodsPerYear: 1,
     adjective: "Annual",
     rowName: "Year",
     unit: "year",
+    optionLabel: "Annually",
   },
 };
 
