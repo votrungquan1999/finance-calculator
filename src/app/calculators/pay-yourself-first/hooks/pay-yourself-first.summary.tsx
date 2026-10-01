@@ -32,7 +32,10 @@ function buildSolvedTile(
       type: "percentage",
     };
   // Whole-year ages are not money
-  if (fieldId === PayFieldId.RetirementAge)
+  if (
+    fieldId === PayFieldId.RetirementAge ||
+    fieldId === PayFieldId.LifeExpectancy
+  )
     return { label, value: String(value), type: "text" };
   return { label, value, type: "currency" };
 }

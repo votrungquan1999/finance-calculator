@@ -3,7 +3,7 @@ import {
   PayFieldId,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { buildSchedule } from "./schedule";
-import { solveRetirementAge } from "./solve-ages";
+import { solveLifeExpectancy, solveRetirementAge } from "./solve-ages";
 import { solveReturn } from "./solve-return";
 import {
   type PlanInputs,
@@ -23,6 +23,7 @@ const SOLVERS: Partial<Record<PayFieldId, Solver>> = {
   [PayFieldId.AnnualReturn]: solveReturn,
   [PayFieldId.SpendingAmount]: solveSpending,
   [PayFieldId.RetirementAge]: solveRetirementAge,
+  [PayFieldId.LifeExpectancy]: solveLifeExpectancy,
 };
 
 /**

@@ -1,6 +1,7 @@
 import {
   type PlanInputs,
   periodsBetween,
+  potBuilt,
   ratePerPeriod,
   surplus,
 } from "./solvers";
@@ -64,4 +65,47 @@ export function solveRetirementAge(
   throw new Error(
     "The money cannot last unless the saver works until life expectancy",
   );
+}
+
+/**
+ * Finds the last whole age the money covers, rounded down to be safe.
+ * @param inputs - Every plan value except the life expectancy
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @returns Life expectancy in whole years
+ */
+export function solveLifeExpectancy(
+  inputs: PlanInputs,
+  periodsPerYear: number,
+): number {
+  const i = ratePerPeriod(inputs.annualReturn, periodsPerYear);
+  const savingPeriods = periodsBetween(
+    inputs.currentAge,
+    inputs.retirementAge,
+    periodsPerYear,
+  );
+  const pot = potBuilt(inputs, i, savingPeriods);
+
+  // Fraction of the pot's growth that one draw eats; 1 or more means the draws never exhaust it
+  const x = (pot * i) / (inputs.spendingAmount * (1 + i));
+  if (x >= 1) return Number.POSITIVE_INFINITY;
+
+  // i = 0 has no growth, so the pot simply divides into draws
+  const periods =
+    i === 0 ? pot / inputs.spendingAmount : -Math.log1p(-x) / Math.log1p(i);
+  // Nudge up: an exact whole answer can come out a hair under (479.99999...) and floor a year short
+  let years = Math.floor(periods / periodsPerYear + 1e-9);
+
+  // The nudge could overshoot by a year, so step down until the shared funded check agrees
+  while (
+    years >= 1 &&
+    !isFunded(
+      { ...inputs, lifeExpectancy: inputs.retirementAge + years },
+      periodsPerYear,
+    )
+  )
+    years--;
+
+  // Under one whole year there is nothing sensible to show
+  if (years < 1) throw new Error("The money lasts less than one whole year");
+  return inputs.retirementAge + years;
 }

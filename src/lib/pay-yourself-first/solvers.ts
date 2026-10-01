@@ -82,6 +82,39 @@ function planShape(inputs: PlanInputs, periodsPerYear: number) {
 }
 
 /**
+ * Pot the saver has built at retirement from savings plus deposits (deposits land at period end).
+ * @param inputs - Plan values (savings and investment are used)
+ * @param i - Rate per period
+ * @param savingPeriods - Number of saving periods
+ * @returns Pot at retirement
+ */
+export function potBuilt(
+  inputs: PlanInputs,
+  i: number,
+  savingPeriods: number,
+): number {
+  return (
+    inputs.currentSavings * (1 + i) ** savingPeriods +
+    inputs.contributionAmount * growthFactor(i, savingPeriods)
+  );
+}
+
+/**
+ * Pot needed at retirement to pay the spending until life expectancy (spending comes out at period start).
+ * @param inputs - Plan values (spending is used)
+ * @param i - Rate per period
+ * @param retiredPeriods - Number of retired periods
+ * @returns Pot needed at retirement
+ */
+export function potNeeded(
+  inputs: PlanInputs,
+  i: number,
+  retiredPeriods: number,
+): number {
+  return inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
+}
+
+/**
  * Finds the amount to invest each period so the savings pay for the spending until life expectancy.
  * @param inputs - Every plan value except the investment amount
  * @param periodsPerYear - Periods in one year (12 for monthly)
@@ -96,12 +129,12 @@ export function solveInvestment(
     periodsPerYear,
   );
 
-  // Spending comes out at the start of each period, so the first draw earns no interest
-  const potNeeded = inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
   const savingsAtRetirement = inputs.currentSavings * (1 + i) ** savingPeriods;
 
-  // Deposits land at the end of each period
-  return (potNeeded - savingsAtRetirement) / growthFactor(i, savingPeriods);
+  return (
+    (potNeeded(inputs, i, retiredPeriods) - savingsAtRetirement) /
+    growthFactor(i, savingPeriods)
+  );
 }
 
 /**
@@ -119,14 +152,9 @@ export function solveSpending(
     periodsPerYear,
   );
 
-  // Deposits land at the end of each period
-  const pot =
-    inputs.currentSavings * (1 + i) ** savingPeriods +
-    inputs.contributionAmount * growthFactor(i, savingPeriods);
-
   // No retired periods would divide by zero; nothing can be spent
   if (retiredPeriods === 0) return 0;
-  return pot / drawdownFactor(i, retiredPeriods);
+  return potBuilt(inputs, i, savingPeriods) / drawdownFactor(i, retiredPeriods);
 }
 
 /**
@@ -144,12 +172,14 @@ export function solveSavings(
     periodsPerYear,
   );
 
-  const potNeeded = inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
   const depositsAtRetirement =
     inputs.contributionAmount * growthFactor(i, savingPeriods);
 
   // Discount what the savings must supply back to today
-  return (potNeeded - depositsAtRetirement) / (1 + i) ** savingPeriods;
+  return (
+    (potNeeded(inputs, i, retiredPeriods) - depositsAtRetirement) /
+    (1 + i) ** savingPeriods
+  );
 }
 
 /**
@@ -164,8 +194,7 @@ export function surplus(inputs: PlanInputs, periodsPerYear: number): number {
     inputs,
     periodsPerYear,
   );
-  const potBuilt =
-    inputs.currentSavings * (1 + i) ** savingPeriods +
-    inputs.contributionAmount * growthFactor(i, savingPeriods);
-  return potBuilt - inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
+  return (
+    potBuilt(inputs, i, savingPeriods) - potNeeded(inputs, i, retiredPeriods)
+  );
 }
