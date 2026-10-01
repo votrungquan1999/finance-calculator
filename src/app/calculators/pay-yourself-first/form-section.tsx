@@ -5,13 +5,10 @@ import {
   CardHeader,
   CardTitle,
 } from "src/components/ui/card";
+import { CalculateButtonWithText } from "./components/calculate-button-with-text";
 import { FieldBlock } from "./components/field-block";
 import { PAY_FIELDS } from "./pay-yourself-first.type";
-import {
-  CalculateButton,
-  FormElement,
-  FormGrid,
-} from "./pay-yourself-first.ui";
+import { FormElement, FormGrid } from "./pay-yourself-first.ui";
 
 /**
  * Form section with server-composed fields
@@ -32,7 +29,7 @@ export function FormSection() {
               <FieldBlock key={field.id} field={field} />
             ))}
           </FormGrid>
-          <CalculateButton>Calculate</CalculateButton>
+          <CalculateButtonWithText />
         </FormElement>
       </CardContent>
     </Card>

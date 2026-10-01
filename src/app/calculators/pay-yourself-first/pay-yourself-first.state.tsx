@@ -3,6 +3,7 @@
 import { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { createReducerContext } from "src/contexts/createReducerContext";
 import {
+  type FormValues,
   type PayAction,
   PayActionType,
   type PayCalculationResult,
@@ -84,4 +85,12 @@ export function useFieldError(fieldId: PayFieldId): string | undefined {
  */
 export function usePayResult(): PayCalculationResult | null {
   return useRawPayState().result;
+}
+
+/**
+ * Everything typed into the form
+ * @returns The typed text of every field plus the chosen period
+ */
+export function useFormValues(): FormValues {
+  return useRawPayState().formValues;
 }
