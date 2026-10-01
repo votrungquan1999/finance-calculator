@@ -5,22 +5,29 @@ import { useRawPayState } from "../pay-yourself-first.state";
 import {
   getFieldLabel,
   PAY_FIELDS,
+  type PayCalculationResult,
   PayFieldId,
+  PlanOutcome,
   type SummaryItem,
 } from "../pay-yourself-first.type";
 
 /**
  * Builds the solved-value tile in the shape that fits its field.
- * @param fieldId - The field that was solved
  * @param label - Tile label
- * @param value - The solved number
- * @returns Percentage text for the return, plain text for an age, currency otherwise
+ * @param result - The calculation result
+ * @returns Percentage text for the return, plain text for an age or an outcome, currency otherwise
  */
 function buildSolvedTile(
-  fieldId: PayFieldId,
   label: string,
-  value: number,
+  result: PayCalculationResult,
 ): SummaryItem {
+  const { solvedField: fieldId, solvedValue: value } = result;
+  // Money that outlasts the schedule has no age to show
+  if (result.outcome === PlanOutcome.NeverRunsOut)
+    return { label, value: "Never runs out", type: "text" };
+  if (result.outcome === PlanOutcome.LastsBeyondCap)
+    return { label, value: `Lasts beyond ${result.finalAge}`, type: "text" };
+
   // Pre-formatted: the shared table would show 3 decimals
   if (fieldId === PayFieldId.AnnualReturn)
     return {
@@ -58,11 +65,7 @@ export const useCalculationSummary = () => {
     if (!solvedField) return [];
 
     const solvedLabel = `${getFieldLabel(solvedField, formValues.period)} (Calculated)`;
-    const solvedTile = buildSolvedTile(
-      solvedField.id,
-      solvedLabel,
-      result.solvedValue,
-    );
+    const solvedTile = buildSolvedTile(solvedLabel, result);
 
     return [
       solvedTile,

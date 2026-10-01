@@ -37,6 +37,7 @@ export interface ScheduleRow extends InvestmentResult {
 export interface PayCalculationResult {
   solvedField: PayFieldId;
   solvedValue: number;
+  outcome: PlanOutcome;
   schedule: ScheduleRow[];
   potAtRetirement: number;
   /** Includes current savings */
@@ -60,6 +61,15 @@ export enum PayFieldId {
   RetirementAge = "retirementAge",
   LifeExpectancy = "lifeExpectancy",
   SpendingAmount = "spendingAmount",
+}
+
+/** How the solved value should be read */
+export enum PlanOutcome {
+  Solved = "SOLVED",
+  /** Spending is covered by returns alone, so the money never runs out */
+  NeverRunsOut = "NEVER_RUNS_OUT",
+  /** The money does run out, but only after the schedule cap age */
+  LastsBeyondCap = "LASTS_BEYOND_CAP",
 }
 
 export enum Phase {
