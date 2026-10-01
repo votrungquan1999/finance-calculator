@@ -110,8 +110,12 @@ export function validateFields(values: FormValues): FormErrors {
 
   for (const field of PAY_FIELDS) {
     const text = values[field.id];
-    // Empty is the "field to solve" rule, not a value problem
-    if (!text?.trim()) continue;
+    if (!text?.trim()) {
+      // Any other empty field is the one to solve; only the current age can never be
+      if (field.id === PayFieldId.CurrentAge)
+        errors[field.id] = "Current age is required";
+      continue;
+    }
 
     const message = checkValue(field.id, text);
     if (message) errors[field.id] = message;
@@ -119,4 +123,15 @@ export function validateFields(values: FormValues): FormErrors {
 
   checkAgeOrder(values, errors);
   return errors;
+}
+
+/**
+ * Lists the solvable fields the saver left empty.
+ * @param values - The text typed into the form
+ * @returns Ids of the empty solvable fields; the current age is never listed
+ */
+export function findEmptySolvableFields(values: FormValues): PayFieldId[] {
+  return PAY_FIELDS.filter(
+    (field) => field.solvable && !values[field.id]?.trim(),
+  ).map((field) => field.id);
 }

@@ -204,3 +204,13 @@ describe("solvePlan non-finite answers", () => {
     expect(solve).not.toThrow(PlainWordsError);
   });
 });
+
+describe("solvePlan unsolvable field", () => {
+  it("treats a request to solve the current age as an unexpected error, not a plain-words one", () => {
+    // When asked to solve a field that is always filled in, then it throws a bug-style error
+    const solve = () =>
+      solvePlan(PayFieldId.CurrentAge, STEP_1_INPUTS, MONTHLY);
+    expect(solve).toThrow(Error);
+    expect(solve).not.toThrow(PlainWordsError);
+  });
+});

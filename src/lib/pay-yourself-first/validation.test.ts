@@ -261,3 +261,20 @@ describe("validateFields age order", () => {
     });
   });
 });
+
+describe("validateFields current age", () => {
+  it("asks for the current age when it is empty or only spaces", () => {
+    // Given every other field fine and the current age left blank
+    const errors = validateFields(form({ currentAge: "  " }));
+
+    // Then the current age alone is flagged as required
+    expect(errors).toEqual({
+      [PayFieldId.CurrentAge]: "Current age is required",
+    });
+
+    // And a current age that was never typed is flagged the same way
+    expect(validateFields(form({ currentAge: undefined }))).toEqual({
+      [PayFieldId.CurrentAge]: "Current age is required",
+    });
+  });
+});

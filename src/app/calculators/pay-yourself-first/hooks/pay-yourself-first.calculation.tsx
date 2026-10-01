@@ -5,10 +5,12 @@ import { toast } from "sonner";
 import { PlainWordsError } from "src/lib/pay-yourself-first/errors";
 import { solvePlan } from "src/lib/pay-yourself-first/plan";
 import type { PlanInputs } from "src/lib/pay-yourself-first/solvers";
-import { readNumber } from "src/lib/pay-yourself-first/validation";
+import {
+  findEmptySolvableFields,
+  readNumber,
+} from "src/lib/pay-yourself-first/validation";
 import { useRawPayDispatch, useRawPayState } from "../pay-yourself-first.state";
 import {
-  PAY_FIELDS,
   PayActionType,
   PayFieldId,
   PERIOD_DETAILS,
@@ -33,15 +35,17 @@ export const useCalculationLogic = () => {
     dispatch({ type: PayActionType.SetResult, payload: null });
 
     const { formValues } = state;
-    const emptyFields = PAY_FIELDS.filter(
-      (field) => !formValues[field.id]?.trim(),
-    );
+    // Messages first, so a failed count never leaves a stale one on screen
+    if (!validateForm()) return;
+
+    // Current age is filled by now, so it is not part of the count
+    const emptyFields = findEmptySolvableFields(formValues);
     if (emptyFields.length !== 1) {
-      toast.error("Please leave exactly one field empty.");
+      toast.error(
+        "Fill in your current age and leave exactly one other field empty — that is the value the calculator will find.",
+      );
       return;
     }
-
-    if (!validateForm()) return;
 
     /**
      * Reads one field as a number; the empty field reads as 0 and is ignored by the solver
@@ -61,7 +65,7 @@ export const useCalculationLogic = () => {
 
     try {
       const result = solvePlan(
-        emptyFields[0].id,
+        emptyFields[0],
         inputs,
         PERIOD_DETAILS[formValues.period].periodsPerYear,
       );

@@ -163,7 +163,8 @@ export function solvePlan(
   periodsPerYear: number,
 ): PayCalculationResult {
   const solver = SOLVERS[solveFor];
-  if (!solver) throw new Error("This calculation is not available yet");
+  // Internal invariant: the form only ever asks for one of the six solvable fields
+  if (!solver) throw new Error(`No solver for field ${solveFor}`);
 
   const { value: solved, alreadyEnough } = clampAlreadyEnough(
     solveFor,
