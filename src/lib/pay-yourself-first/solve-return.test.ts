@@ -3,7 +3,12 @@ import { PlainWordsError } from "./errors";
 import { buildSchedule } from "./schedule";
 import { solveReturn } from "./solve-return";
 import { type PlanInputs, solveInvestment, surplus } from "./solvers";
-import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
+import {
+  MONTHLY,
+  randomPlan,
+  STEP_1_INPUTS,
+  seededRandom,
+} from "./test-fixtures";
 
 describe("solveReturn", () => {
   const INPUTS: PlanInputs = {
@@ -111,5 +116,30 @@ describe("solveReturn", () => {
     expect(
       surplus({ ...INPUTS, annualReturn: rate }, MONTHLY),
     ).toBeGreaterThanOrEqual(0);
+  });
+});
+
+describe("solveReturn with rising prices", () => {
+  it("gets back the return an investment was solved at, including when inflation beats the return", () => {
+    // Given seeded monthly plans at returns of 1-12% and inflation of 0-15%, each with its exact investment
+    const random = seededRandom(2026);
+    let inflationAboveReturn = 0;
+    for (let k = 0; k < 100; k++) {
+      const plan = { ...randomPlan(random), inflation: random() * 15 };
+      if (plan.inflation > plan.annualReturn) inflationAboveReturn++;
+      const solved = {
+        ...plan,
+        contributionAmount: solveInvestment(plan, MONTHLY),
+      };
+
+      // When solving the return back from that investment
+      const rate = solveReturn({ ...solved, annualReturn: 0 }, MONTHLY);
+
+      // Then it is the return the saver started with
+      expect(rate).toBeCloseTo(plan.annualReturn, 6);
+    }
+
+    // And the cases really include prices outrunning the return
+    expect(inflationAboveReturn).toBeGreaterThan(10);
   });
 });

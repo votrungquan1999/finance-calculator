@@ -5,6 +5,7 @@ import {
   openCalculator,
   STEP_1_INPUTS,
   summaryNumber,
+  summaryText,
   summaryValue,
 } from "./helpers";
 
@@ -49,5 +50,26 @@ test.describe("A saver's spending rises with prices once a year", () => {
 
     // And the money is used up at life expectancy
     await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");
+  });
+
+  test("shows the return a plan needs once spending rises 4% a year", async ({
+    page,
+  }) => {
+    // Given the exact investment that 4% inflation needs at 7%, with the return left empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      inflation: "4",
+      contributionAmount: "57289831.075254",
+      annualReturn: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the return needed is 7%, not the lower rate that flat spending would need
+    await expect(
+      summaryText(page, "Annual Return (%) (Calculated)"),
+    ).toHaveText("7.00%");
   });
 });
