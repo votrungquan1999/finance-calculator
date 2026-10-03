@@ -72,4 +72,46 @@ test.describe("A saver's spending rises with prices once a year", () => {
       summaryText(page, "Annual Return (%) (Calculated)"),
     ).toHaveText("7.00%");
   });
+
+  test("shows the age the money runs out when rising prices outgrow a pot that flat spending would never empty", async ({
+    page,
+  }) => {
+    // Given 30,000,000 a month invested, whose pot's growth covers flat spending forever, with 4% inflation and life expectancy empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      inflation: "4",
+      contributionAmount: "30000000",
+      lifeExpectancy: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the money lasts until 65, as a month-by-month simulation finds
+    await expect(summaryText(page, "Life Expectancy (Calculated)")).toHaveText(
+      "65",
+    );
+  });
+
+  test("shows the earliest age a saver can stop working once spending rises 4% a year", async ({
+    page,
+  }) => {
+    // Given the exact investment that 4% inflation needs to retire at 50, with the retirement age empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      inflation: "4",
+      contributionAmount: "57289831.075254",
+      retirementAge: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then they can stop working at 50
+    await expect(summaryText(page, "Retirement Age (Calculated)")).toHaveText(
+      "50",
+    );
+  });
 });

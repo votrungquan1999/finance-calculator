@@ -122,3 +122,28 @@ describe("round trips with rising prices by period", () => {
     },
   );
 });
+
+describe("age round trips with rising prices by period", () => {
+  it.each(PERIODS)(
+    "gets back the saver's own retirement age and life expectancy from the investment solved for them, with inflation up to 10% ($periodsPerYear a year)",
+    ({ periodsPerYear }) => {
+      // Given seeded plans with inflation from 0% to 10%, each with its exact investment for this period
+      const random = seededRandom(200 + periodsPerYear);
+      for (let k = 0; k < 100; k++) {
+        const plan = { ...randomPlan(random), inflation: random() * 10 };
+        const solved = {
+          ...plan,
+          contributionAmount: solveInvestment(plan, periodsPerYear),
+        };
+
+        // When solving each age back from that investment
+        const retirementAge = solveRetirementAge(solved, periodsPerYear);
+        const lifeExpectancy = solveLifeExpectancy(solved, periodsPerYear);
+
+        // Then each returns what the saver started with
+        expect(retirementAge).toBe(plan.retirementAge);
+        expect(lifeExpectancy).toBe(plan.lifeExpectancy);
+      }
+    },
+  );
+});

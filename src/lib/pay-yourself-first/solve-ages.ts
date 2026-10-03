@@ -1,8 +1,10 @@
 import { PlainWordsError } from "./errors";
 import {
+  growthAfterInflation,
   type PlanInputs,
   periodsBetween,
   potBuilt,
+  potNeeded,
   ratePerPeriod,
   surplus,
 } from "./solvers";
@@ -87,16 +89,22 @@ export function solveLifeExpectancy(
     periodsPerYear,
   );
   const pot = potBuilt(inputs, i, savingPeriods);
+  // Spending rises once a year, so count whole years: the pot one retired year needs, in that year's prices
+  const firstYear = potNeeded(
+    { ...inputs, lifeExpectancy: inputs.retirementAge + 1 },
+    periodsPerYear,
+  );
+  const growth = growthAfterInflation(i, periodsPerYear, inputs.inflation);
 
-  // Fraction of the pot's growth that one draw eats; 1 or more means the draws never exhaust it
-  const x = (pot * i) / (inputs.spendingAmount * (1 + i));
+  // Fraction of the pot's growth after inflation that one year eats; 1 or more means the years never exhaust it
+  const x = (pot * growth) / (firstYear * (1 + growth));
   if (x >= 1) return Number.POSITIVE_INFINITY;
 
-  // i = 0 has no growth, so the pot simply divides into draws
-  const periods =
-    i === 0 ? pot / inputs.spendingAmount : -Math.log1p(-x) / Math.log1p(i);
-  // Nudge up: an exact whole answer can come out a hair under (479.99999...) and floor a year short
-  let years = Math.floor(periods / periodsPerYear + 1e-9);
+  // No growth after inflation means the pot simply divides into years
+  const exactYears =
+    growth === 0 ? pot / firstYear : -Math.log1p(-x) / Math.log1p(growth);
+  // Nudge up: an exact whole answer can come out a hair under (39.99999...) and floor a year short
+  let years = Math.floor(exactYears + 1e-9);
 
   // The nudge could overshoot by a year, so step down until the shared funded check agrees
   while (

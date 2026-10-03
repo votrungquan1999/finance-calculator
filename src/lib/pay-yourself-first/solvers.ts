@@ -80,7 +80,7 @@ function drawdownFactor(i: number, m: number): number {
  * @param inflation - Yearly price rise in percent
  * @returns Yearly growth after inflation as a fraction
  */
-function growthAfterInflation(
+export function growthAfterInflation(
   i: number,
   periodsPerYear: number,
   inflation: number,
