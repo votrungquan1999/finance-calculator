@@ -71,4 +71,20 @@ test.describe("A saver sees the answer before the schedule", () => {
     const tableBox = await page.getByRole("table").boundingBox();
     expect(answerBox?.y).toBeLessThan(tableBox?.y ?? 0);
   });
+
+  test("scrolls down to the answer after Calculate, so the saver does not have to", async ({
+    page,
+  }) => {
+    // Given the reference plan filled in at the top of the page
+    await openCalculator(page);
+    await fillPlan(page, STEP_1_INPUTS);
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the answer is on screen without the saver scrolling
+    await expect(
+      summaryValue(page, "Monthly Investment (Calculated)"),
+    ).toBeInViewport();
+  });
 });

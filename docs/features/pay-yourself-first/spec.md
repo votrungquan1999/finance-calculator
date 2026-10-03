@@ -59,6 +59,7 @@ Worked examples further down use the test suite's reference plan (50,000,000 a m
 
 ## Results
 
+- **The page scrolls to the result.** After a successful Calculate, the page smoothly scrolls so the results card (answer tiles first) is at the top of the screen. A failed Calculate does not scroll.
 - **Summary tiles, above the schedule** so the answer shows without scrolling past the rows (the shared results table's `summaryFirst` option; the Investment page keeps its tiles below). In order:
   - the solved value ("<Field> (Calculated)")
   - the Note, when there is one

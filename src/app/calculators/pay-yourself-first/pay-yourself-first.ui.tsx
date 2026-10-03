@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Button } from "src/components/ui/button";
 import { useCalculationLogic } from "./hooks/pay-yourself-first.calculation";
 import { usePayResult } from "./pay-yourself-first.state";
+import { RESULTS_ELEMENT_ID } from "./pay-yourself-first.type";
 
 /**
  * Wrapper for the display options under the fields
@@ -82,12 +83,16 @@ export function FormElement({ children }: { children: ReactNode }) {
 }
 
 /**
- * Shows its children only once a result exists
+ * Shows its children only once a result exists; the page scrolls to it after Calculate
  */
 export function ResultsWrapper({ children }: { children: ReactNode }) {
   const result = usePayResult();
 
   if (!result) return null;
 
-  return <>{children}</>;
+  return (
+    <div id={RESULTS_ELEMENT_ID} className="scroll-mt-4">
+      {children}
+    </div>
+  );
 }

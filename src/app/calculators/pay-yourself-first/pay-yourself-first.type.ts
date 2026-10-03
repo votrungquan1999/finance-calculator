@@ -126,6 +126,9 @@ export type PayAction =
   | { type: PayActionType.SetPeriod; payload: ContributionPeriod }
   | { type: PayActionType.SetMoneyView; payload: MoneyView };
 
+/** Element the page scrolls to once a plan is calculated */
+export const RESULTS_ELEMENT_ID = "plan-results";
+
 /** One ordered list drives the form, the calculation and the button */
 export const PAY_FIELDS: PayField[] = [
   {

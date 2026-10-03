@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
+import { flushSync } from "react-dom";
 import { toast } from "sonner";
 import { PlainWordsError } from "src/lib/pay-yourself-first/errors";
 import { solvePlan } from "src/lib/pay-yourself-first/plan";
@@ -14,6 +15,7 @@ import {
   PayActionType,
   PayFieldId,
   PERIOD_DETAILS,
+  RESULTS_ELEMENT_ID,
 } from "../pay-yourself-first.type";
 import { useFormValidation } from "./pay-yourself-first.validation";
 
@@ -26,7 +28,7 @@ export const useCalculationLogic = () => {
   const { validateForm } = useFormValidation();
 
   /**
-   * Finds the one empty field and shows the plan that solves it
+   * Finds the one empty field, shows the plan that solves it and scrolls to it
    */
   const handleFormSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -70,7 +72,13 @@ export const useCalculationLogic = () => {
         inputs,
         PERIOD_DETAILS[formValues.period].periodsPerYear,
       );
-      dispatch({ type: PayActionType.SetResult, payload: result });
+      // Draw the result now so the page can bring it into view straight away
+      flushSync(() =>
+        dispatch({ type: PayActionType.SetResult, payload: result }),
+      );
+      document
+        .getElementById(RESULTS_ELEMENT_ID)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     } catch (error) {
       // Expected unreachable goals read as plain words; anything else is a bug whose text must stay off screen
       if (error instanceof PlainWordsError) {
