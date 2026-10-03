@@ -42,6 +42,7 @@ test.describe("A saver can share their plan as a link", () => {
       retirementAge: "50",
       lifeExpectancy: "90",
       spendingAmount: "600000000",
+      inflation: "0",
     });
   });
 

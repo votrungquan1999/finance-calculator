@@ -13,7 +13,7 @@ export interface PlanValues {
   inflation?: string;
 }
 
-/** Monthly, age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000 */
+/** Monthly, age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000, no inflation */
 export const STEP_1_INPUTS: PlanValues = {
   currentAge: "30",
   currentSavings: "0",
@@ -21,6 +21,7 @@ export const STEP_1_INPUTS: PlanValues = {
   retirementAge: "50",
   lifeExpectancy: "90",
   spendingAmount: "50000000",
+  inflation: "0",
 };
 
 /**

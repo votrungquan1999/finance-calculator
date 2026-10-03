@@ -21,6 +21,7 @@ function form(overrides: Partial<FormValues> = {}): FormValues {
     retirementAge: "50",
     lifeExpectancy: "90",
     spendingAmount: "50000000",
+    inflation: "0",
     period: ContributionPeriod.Monthly,
     ...overrides,
   };
@@ -97,5 +98,31 @@ describe("validateFields amount limit", () => {
 
     // Then neither is flagged
     expect(errors).toEqual({});
+  });
+});
+
+describe("validateFields inflation", () => {
+  it("asks for the inflation when it is empty, even with another field left empty to solve", () => {
+    // Given the inflation as the only empty field, and (separately) blank beside the empty investment
+    const alone = validateFields(
+      form({ inflation: "", contributionAmount: "10000000" }),
+    );
+    const withSolved = validateFields(form({ inflation: "  " }));
+
+    // Then only the inflation is flagged; the empty investment is still the value to find
+    expect(alone).toEqual({ [PayFieldId.Inflation]: "Inflation is required" });
+    expect(withSolved).toEqual({
+      [PayFieldId.Inflation]: "Inflation is required",
+    });
+  });
+
+  it("flags inflation above 50% and accepts exactly 50%", () => {
+    // Given inflation of 50.5 and (separately) 50
+    const above = validateFields(form({ inflation: "50.5" }));
+    const exactly = validateFields(form({ inflation: "50" }));
+
+    // Then only the 50.5 is flagged
+    expect(above).toEqual({ [PayFieldId.Inflation]: "Must be 50% or less" });
+    expect(exactly).toEqual({});
   });
 });

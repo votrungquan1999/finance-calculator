@@ -97,6 +97,7 @@ test.describe("A saver whose goal cannot be reached is told why", () => {
       lifeExpectancy: "90",
       spendingAmount: "10000000",
       contributionAmount: "",
+      inflation: "0",
     });
 
     // When they calculate

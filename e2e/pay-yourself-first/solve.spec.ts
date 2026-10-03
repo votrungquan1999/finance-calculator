@@ -62,6 +62,7 @@ test.describe("A saver finds out how much they can spend each month in retiremen
       annualReturn: "7",
       retirementAge: "60",
       lifeExpectancy: "90",
+      inflation: "0",
     });
 
     // When they calculate

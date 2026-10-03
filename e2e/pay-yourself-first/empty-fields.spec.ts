@@ -47,6 +47,28 @@ test.describe("A saver is asked to leave exactly one field empty, with current a
     await expect(page.getByText("(Calculated)")).toHaveCount(0);
   });
 
+  test("asks for the inflation under its field when only that is empty", async ({
+    page,
+  }) => {
+    // Given every other field filled and the inflation empty
+    await openCalculator(page);
+    await fillPlan(page, {
+      ...STEP_1_INPUTS,
+      contributionAmount: "15535539.32",
+      inflation: "",
+    });
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then the message sits under the inflation, which is never the value to find
+    await expect(page.locator("#inflation-error")).toHaveText(
+      "Inflation is required",
+    );
+    await expect(page.getByText(RULE_TOAST)).toHaveCount(0);
+    await expect(page.getByText("(Calculated)")).toHaveCount(0);
+  });
+
   test("tells them the rule when no field is empty", async ({ page }) => {
     // Given every field filled in
     await openCalculator(page);

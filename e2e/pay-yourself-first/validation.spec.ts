@@ -153,6 +153,7 @@ test.describe("A saver who types an invalid value is told which field is wrong",
       annualReturn: "7",
       lifeExpectancy: "90",
       spendingAmount: "",
+      inflation: "0",
     });
 
     // When they calculate

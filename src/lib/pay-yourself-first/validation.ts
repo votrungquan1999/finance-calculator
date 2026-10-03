@@ -12,6 +12,9 @@ const NUMBER_PATTERN = /^-?((\d+|[1-9]\d{0,2}(,\d{3})+)(\.\d*)?|\.\d+)$/;
 /** Highest age accepted; blocks absurd schedules */
 const MAX_AGE = 120;
 
+/** Highest yearly inflation (percent) accepted; matches the return's ceiling */
+const MAX_INFLATION = 50;
+
 /** Highest money amount accepted; beyond it the schedule overflows into meaningless numbers */
 const MAX_AMOUNT = 1_000_000_000_000_000;
 
@@ -20,6 +23,12 @@ const AMOUNT_FIELDS: PayFieldId[] = [
   PayFieldId.ContributionAmount,
   PayFieldId.SpendingAmount,
 ];
+
+/** Fields that are never the one to solve, so an empty one is a mistake */
+const REQUIRED_MESSAGES: Partial<Record<PayFieldId, string>> = {
+  [PayFieldId.CurrentAge]: "Current age is required",
+  [PayFieldId.Inflation]: "Inflation is required",
+};
 
 const AGE_FIELDS: PayFieldId[] = [
   PayFieldId.CurrentAge,
@@ -57,6 +66,8 @@ function checkValue(fieldId: PayFieldId, text: string): string | null {
     return `Must be ${MAX_AGE} or less`;
   if (fieldId === PayFieldId.AnnualReturn && value > MAX_RETURN)
     return `Must be ${MAX_RETURN}% or less`;
+  if (fieldId === PayFieldId.Inflation && value > MAX_INFLATION)
+    return `Must be ${MAX_INFLATION}% or less`;
   // Zero spending makes every answer meaningless
   if (fieldId === PayFieldId.SpendingAmount && value === 0)
     return "Must be more than 0";
@@ -111,9 +122,9 @@ export function validateFields(values: FormValues): FormErrors {
   for (const field of PAY_FIELDS) {
     const text = values[field.id];
     if (!text?.trim()) {
-      // Any other empty field is the one to solve; only the current age can never be
-      if (field.id === PayFieldId.CurrentAge)
-        errors[field.id] = "Current age is required";
+      // Any other empty field is the one to solve
+      const required = REQUIRED_MESSAGES[field.id];
+      if (required) errors[field.id] = required;
       continue;
     }
 
@@ -128,7 +139,7 @@ export function validateFields(values: FormValues): FormErrors {
 /**
  * Lists the solvable fields the saver left empty.
  * @param values - The text typed into the form
- * @returns Ids of the empty solvable fields; the current age is never listed
+ * @returns Ids of the empty solvable fields; the current age and inflation are never listed
  */
 export function findEmptySolvableFields(values: FormValues): PayFieldId[] {
   return PAY_FIELDS.filter(

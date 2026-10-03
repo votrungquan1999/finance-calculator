@@ -21,6 +21,7 @@ function form(overrides: Partial<FormValues> = {}): FormValues {
     retirementAge: "50",
     lifeExpectancy: "90",
     spendingAmount: "50000000",
+    inflation: "0",
     period: ContributionPeriod.Monthly,
     ...overrides,
   };
