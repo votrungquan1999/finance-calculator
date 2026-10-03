@@ -85,4 +85,26 @@ describe("opening a shared Pay Yourself First link", () => {
     // Then the form plans by month
     expect(values.period).toBe("monthly");
   });
+
+  it("opens in today's money when the link says so", () => {
+    // Given a link shared while viewing today's money
+    const query = { moneyView: "today" };
+
+    // When the link is read
+    const values = convertSearchParamsToFormValues(query);
+
+    // Then the results will show today's money
+    expect(values.moneyView).toBe("today");
+  });
+
+  it("falls back to future money when the money view is not one of ours", () => {
+    // Given a link with a made-up money view
+    const query = { moneyView: "bogus" };
+
+    // When the link is read
+    const values = convertSearchParamsToFormValues(query);
+
+    // Then the results will show future money
+    expect(values.moneyView).toBe("future");
+  });
 });

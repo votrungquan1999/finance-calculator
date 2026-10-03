@@ -25,17 +25,20 @@ function firstValue(
 /**
  * Turns a shared link's query into the form the saver sees, ready to calculate.
  * @param searchParams - Query as Next.js hands it to a page
- * @returns Form values: the readable numbers from known fields plus a valid period (Monthly when missing or unknown)
+ * @returns Form values: the readable numbers from known fields plus a valid period (Monthly when missing or unknown) and money view (future when missing or unknown)
  */
 export function convertSearchParamsToFormValues(
   searchParams: SearchParams,
 ): FormValues {
   const period = firstValue(searchParams, "period");
+  const moneyView = firstValue(searchParams, "moneyView");
   const values: FormValues = {
     period:
       Object.values(ContributionPeriod).find((p) => p === period) ??
       ContributionPeriod.Monthly,
-    moneyView: MoneyView.Future,
+    moneyView:
+      Object.values(MoneyView).find((view) => view === moneyView) ??
+      MoneyView.Future,
   };
   for (const field of PAY_FIELDS) {
     const text = firstValue(searchParams, field.id);

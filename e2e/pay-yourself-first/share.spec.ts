@@ -107,4 +107,47 @@ test.describe("A saver can share their plan as a link", () => {
       "Monthly",
     );
   });
+
+  test("opening a link keeps its inflation and shows results in the money it was shared in", async ({
+    page,
+  }) => {
+    // When a saver opens a monthly plan shared with 4% inflation while viewing today's money
+    await page.goto(
+      "/calculators/pay-yourself-first?period=monthly&currentAge=30&currentSavings=0&annualReturn=7&retirementAge=50&lifeExpectancy=90&spendingAmount=50000000&inflation=4&moneyView=today",
+    );
+
+    // Then the inflation is filled and the today's-money switch is on
+    await expect(page.getByRole("textbox", { name: /Inflation/ })).toHaveValue(
+      "4",
+    );
+    const todaysMoney = page.getByRole("switch", {
+      name: "Show amounts in today's money",
+    });
+    await expect(todaysMoney).toBeChecked();
+
+    // And calculating shows the plan in today's prices
+    await clickCalculate(page);
+    await expect(summaryValue(page, "Total spent in retirement")).toHaveText(
+      "$24,000,000,000.00",
+    );
+  });
+
+  test("opening an older link without inflation asks for it instead of assuming none", async ({
+    page,
+  }) => {
+    // Given a link shared before inflation was part of the plan
+    await page.goto(
+      "/calculators/pay-yourself-first?period=monthly&currentAge=30&currentSavings=0&annualReturn=7&retirementAge=50&lifeExpectancy=90&spendingAmount=50000000",
+    );
+    await expect(page.getByRole("textbox", { name: /Inflation/ })).toHaveValue(
+      "",
+    );
+
+    // When they calculate
+    await clickCalculate(page);
+
+    // Then they are asked for the inflation and nothing is calculated
+    await expect(page.getByText("Inflation is required")).toBeVisible();
+    await expect(page.getByText("(Calculated)")).toHaveCount(0);
+  });
 });
