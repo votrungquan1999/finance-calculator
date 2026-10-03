@@ -52,3 +52,23 @@ test.describe("A saver sees a month-by-month schedule", () => {
     await expect(summaryValue(page, "Money left at 90")).toHaveText("$0.00");
   });
 });
+
+test.describe("A saver sees the answer before the schedule", () => {
+  test("puts the calculated value and totals above the table, so no scrolling past the rows is needed", async ({
+    page,
+  }) => {
+    // Given the reference plan, solved for the monthly investment
+    await openCalculator(page);
+    await fillPlan(page, STEP_1_INPUTS);
+    await clickCalculate(page);
+
+    // When the result appears
+    const answer = summaryValue(page, "Monthly Investment (Calculated)");
+    await expect(answer).toHaveText("$15,535,539.32");
+
+    // Then the answer sits above the schedule's first row
+    const answerBox = await answer.boundingBox();
+    const tableBox = await page.getByRole("table").boundingBox();
+    expect(answerBox?.y).toBeLessThan(tableBox?.y ?? 0);
+  });
+});

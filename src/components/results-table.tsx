@@ -58,6 +58,8 @@ interface ResultsTableProps {
   filename?: string;
   calculatorSource?: string; // Source identifier for saved values
   shareableState?: CalculatorState; // State for generating shareable URLs
+  /** Show the summary above the table, so the answer is seen without scrolling past the rows */
+  summaryFirst?: boolean;
 }
 
 /**
@@ -73,6 +75,7 @@ export function ResultsTable({
   filename = "financial-calculation",
   calculatorSource = "Financial Calculator",
   shareableState,
+  summaryFirst = false,
 }: ResultsTableProps) {
   const [showAll, setShowAll] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -224,6 +227,51 @@ export function ResultsTable({
     );
   }
 
+  // Rendered above or below the table depending on summaryFirst
+  const summaryBlock = summary && summary.length > 0 && (
+    <div className={summaryFirst ? "mb-6 pb-6 border-b" : "mt-6 pt-6 border-t"}>
+      <h3 className="font-semibold mb-3">Summary</h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {summary.map((item) => {
+          const isNumeric =
+            typeof item.value === "number" && item.type !== "text";
+          const formattedValue = formatCellValue(item.value, item.type);
+
+          return (
+            <div
+              key={item.label}
+              className="text-center p-3 bg-muted/50 rounded-lg"
+            >
+              <p className="text-sm text-muted-foreground">{item.label}</p>
+              {isNumeric ? (
+                <SaveValueDialog
+                  value={item.value as number}
+                  columnLabel={item.label}
+                  columnType={
+                    item.type as "currency" | "percentage" | "number" | "text"
+                  }
+                  rowIndex={-1} // Summary item doesn't have row index
+                  calculatorSource={calculatorSource}
+                  formattedValue={formattedValue}
+                >
+                  <button
+                    type="button"
+                    className="text-lg font-semibold hover:text-primary transition-colors group inline-flex items-center gap-2 p-1 rounded hover:bg-background/50"
+                  >
+                    <span>{formattedValue}</span>
+                    <Save className="size-3 opacity-0 group-hover:opacity-70 transition-opacity" />
+                  </button>
+                </SaveValueDialog>
+              ) : (
+                <p className="text-lg font-semibold">{formattedValue}</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
   return (
     <Card>
       <CardHeader>
@@ -266,6 +314,7 @@ export function ResultsTable({
         </div>
       </CardHeader>
       <CardContent>
+        {summaryFirst && summaryBlock}
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -351,55 +400,7 @@ export function ResultsTable({
           </div>
         )}
 
-        {summary && summary.length > 0 && (
-          <div className="mt-6 pt-6 border-t">
-            <h3 className="font-semibold mb-3">Summary</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {summary.map((item) => {
-                const isNumeric =
-                  typeof item.value === "number" && item.type !== "text";
-                const formattedValue = formatCellValue(item.value, item.type);
-
-                return (
-                  <div
-                    key={item.label}
-                    className="text-center p-3 bg-muted/50 rounded-lg"
-                  >
-                    <p className="text-sm text-muted-foreground">
-                      {item.label}
-                    </p>
-                    {isNumeric ? (
-                      <SaveValueDialog
-                        value={item.value as number}
-                        columnLabel={item.label}
-                        columnType={
-                          item.type as
-                            | "currency"
-                            | "percentage"
-                            | "number"
-                            | "text"
-                        }
-                        rowIndex={-1} // Summary item doesn't have row index
-                        calculatorSource={calculatorSource}
-                        formattedValue={formattedValue}
-                      >
-                        <button
-                          type="button"
-                          className="text-lg font-semibold hover:text-primary transition-colors group inline-flex items-center gap-2 p-1 rounded hover:bg-background/50"
-                        >
-                          <span>{formattedValue}</span>
-                          <Save className="size-3 opacity-0 group-hover:opacity-70 transition-opacity" />
-                        </button>
-                      </SaveValueDialog>
-                    ) : (
-                      <p className="text-lg font-semibold">{formattedValue}</p>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+        {!summaryFirst && summaryBlock}
       </CardContent>
     </Card>
   );

@@ -59,7 +59,7 @@ Worked examples further down use the test suite's reference plan (50,000,000 a m
 
 ## Results
 
-- **Summary tiles.** In order:
+- **Summary tiles, above the schedule** so the answer shows without scrolling past the rows (the shared results table's `summaryFirst` option; the Investment page keeps its tiles below). In order:
   - the solved value ("<Field> (Calculated)")
   - the Note, when there is one
   - Pot at retirement

@@ -53,6 +53,7 @@ export function ResultsTableWithData() {
       filename="pay-yourself-first-schedule"
       calculatorSource="Pay Yourself First"
       shareableState={shareableState}
+      summaryFirst
     />
   );
 }
