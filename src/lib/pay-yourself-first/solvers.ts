@@ -183,7 +183,7 @@ export function solveInvestment(
 }
 
 /**
- * Finds the amount that can be spent each period in retirement given the investing.
+ * Finds the amount, in today's money, that can be spent each period in retirement given the investing.
  * @param inputs - Every plan value except the spending amount
  * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Spending amount per period
@@ -199,7 +199,11 @@ export function solveSpending(
 
   // No retired periods would divide by zero; nothing can be spent
   if (retiredPeriods === 0) return 0;
-  return potBuilt(inputs, i, savingPeriods) / drawdownFactor(i, retiredPeriods);
+  // Pot needed scales with spending, so divide by what one unit of spending needs
+  return (
+    potBuilt(inputs, i, savingPeriods) /
+    potNeeded({ ...inputs, spendingAmount: 1 }, periodsPerYear)
+  );
 }
 
 /**

@@ -6,7 +6,7 @@ import {
 import { solvePlan } from "./plan";
 import { buildSchedule } from "./schedule";
 import { solveLifeExpectancy, solveRetirementAge } from "./solve-ages";
-import { solveInvestment, solveSpending } from "./solvers";
+import { solveInvestment, solveSavings, solveSpending } from "./solvers";
 import { randomPlan, STEP_1_INPUTS, seededRandom } from "./test-fixtures";
 
 const PERIODS = Object.values(PERIOD_DETAILS);
@@ -89,6 +89,35 @@ describe("round trips by period", () => {
         expect(spending).toBeCloseTo(plan.spendingAmount, 2);
         expect(retirementAge).toBe(plan.retirementAge);
         expect(lifeExpectancy).toBe(plan.lifeExpectancy);
+      }
+    },
+  );
+});
+
+describe("round trips with rising prices by period", () => {
+  it.each(PERIODS)(
+    "gets back the saver's own spending and savings from the investment solved for them, with inflation up to 10% ($periodsPerYear a year)",
+    ({ periodsPerYear }) => {
+      // Given seeded plans with 1,000,000,000 saved and inflation from 0% to 10%, each with its exact investment
+      const random = seededRandom(100 + periodsPerYear);
+      for (let k = 0; k < 100; k++) {
+        const plan = {
+          ...randomPlan(random),
+          currentSavings: 1_000_000_000,
+          inflation: random() * 10,
+        };
+        const solved = {
+          ...plan,
+          contributionAmount: solveInvestment(plan, periodsPerYear),
+        };
+
+        // When solving the spending and the savings back from that investment
+        const spending = solveSpending(solved, periodsPerYear);
+        const savings = solveSavings(solved, periodsPerYear);
+
+        // Then each returns what the saver started with, to the dollar
+        expect(Math.abs(spending - plan.spendingAmount)).toBeLessThan(1);
+        expect(Math.abs(savings - plan.currentSavings)).toBeLessThan(1);
       }
     },
   );

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { PlainWordsError } from "./errors";
+import { buildSchedule } from "./schedule";
 import { solveInvestment, solveSavings, solveSpending } from "./solvers";
 import { MONTHLY, STEP_1_INPUTS } from "./test-fixtures";
 
@@ -114,6 +115,29 @@ describe("solveSavings", () => {
 
     // Then the investing covers part of the pot and the savings make up the rest
     expect(savings).toBeCloseTo(713_987_736.63, 2);
+  });
+
+  it("finds the savings whose schedule pays spending rising 4% a year until life expectancy", () => {
+    // Given the reference plan with 4% inflation and no monthly investing, savings to be found
+    const plan = { ...STEP_1_INPUTS, inflation: 4 };
+    const savings = solveSavings(plan, MONTHLY);
+
+    // Then it is the larger pot rising prices need, discounted back 240 months
+    expect(savings).toBeCloseTo(7_389_386_008.83, 2);
+
+    // And a schedule started from it runs out at life expectancy
+    const { finalBalance } = buildSchedule({
+      currentAge: 30,
+      retirementAge: 50,
+      endAge: 90,
+      currentSavings: savings,
+      investment: 0,
+      spending: 50_000_000,
+      annualReturn: 7,
+      inflation: 4,
+      periodsPerYear: MONTHLY,
+    });
+    expect(Math.abs(finalBalance)).toBeLessThan(1);
   });
 
   it("needs savings equal to the pot when the saver is already retired", () => {
