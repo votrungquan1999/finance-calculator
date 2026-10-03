@@ -22,7 +22,11 @@ describe("opening a shared Pay Yourself First link", () => {
     const values = convertSearchParamsToFormValues(query);
 
     // Then only the form's own fields are kept
-    expect(values).toEqual({ currentAge: "30", period: "monthly" });
+    expect(values).toEqual({
+      currentAge: "30",
+      period: "monthly",
+      moneyView: "future",
+    });
   });
 
   it("leaves a field empty when its text is not a number", () => {

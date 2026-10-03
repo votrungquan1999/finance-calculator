@@ -2,7 +2,11 @@
 
 import type { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { useRawPayDispatch } from "../pay-yourself-first.state";
-import { PayActionType, type PayFieldId } from "../pay-yourself-first.type";
+import {
+  type MoneyView,
+  PayActionType,
+  type PayFieldId,
+} from "../pay-yourself-first.type";
 
 /**
  * Hook with the handlers that change form values
@@ -28,5 +32,13 @@ export const useInputHandlers = () => {
     dispatch({ type: PayActionType.SetPeriod, payload: period });
   };
 
-  return { handleInputChange, handlePeriodChange };
+  /**
+   * Switches which money the results are shown in
+   * @param view - Future money or today's money
+   */
+  const handleMoneyViewChange = (view: MoneyView) => {
+    dispatch({ type: PayActionType.SetMoneyView, payload: view });
+  };
+
+  return { handleInputChange, handlePeriodChange, handleMoneyViewChange };
 };

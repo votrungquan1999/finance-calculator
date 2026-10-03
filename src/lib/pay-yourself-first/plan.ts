@@ -13,6 +13,7 @@ import {
   solveSpending,
   surplus,
 } from "./solvers";
+import { toTodaysMoney } from "./todays-money";
 
 interface Solver {
   // biome-ignore lint/style/useShorthandFunctionType: rules.md prefers interface
@@ -155,7 +156,7 @@ function snapSolvedBalance(
  * @param solveFor - The field to find
  * @param inputs - The filled-in plan values (the solved field is ignored)
  * @param periodsPerYear - Periods in one year (12 for monthly)
- * @returns The solved value, the outcome, and the schedule (which stops at the age cap for beyond-cap outcomes)
+ * @returns The solved value, the outcome, and the figures in future and today's money (the schedule stops at the age cap for beyond-cap outcomes)
  */
 export function solvePlan(
   solveFor: PayFieldId,
@@ -218,15 +219,24 @@ export function solvePlan(
       : row,
   );
 
-  return {
-    solvedField: solveFor,
-    solvedValue: solved,
-    outcome,
+  const future = {
     schedule: rows,
     potAtRetirement: schedule.potAtRetirement,
     totalInvested: schedule.totalInvested,
     totalSpent: schedule.totalSpent,
     moneyLeft,
+  };
+
+  return {
+    solvedField: solveFor,
+    solvedValue: solved,
+    outcome,
     finalAge: endAge,
+    ...future,
+    todaysMoney: toTodaysMoney(future, {
+      currentSavings: plan.currentSavings,
+      inflation: plan.inflation,
+      periodsPerYear,
+    }),
   };
 }

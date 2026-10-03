@@ -43,6 +43,7 @@ test.describe("A saver can share their plan as a link", () => {
       lifeExpectancy: "90",
       spendingAmount: "600000000",
       inflation: "0",
+      moneyView: "future",
     });
   });
 

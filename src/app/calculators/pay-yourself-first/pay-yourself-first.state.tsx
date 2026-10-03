@@ -5,6 +5,7 @@ import { createReducerContext } from "src/contexts/createReducerContext";
 import type { CalculatorState } from "src/lib/url-state";
 import {
   type FormValues,
+  MoneyView,
   PAY_FIELDS,
   type PayAction,
   PayActionType,
@@ -14,10 +15,13 @@ import {
 } from "./pay-yourself-first.type";
 
 /**
- * Initial state: empty form on the Monthly period, no result
+ * Initial state: empty form on the Monthly period in future money, no result
  */
 const initialState: PayState = {
-  formValues: { period: ContributionPeriod.Monthly },
+  formValues: {
+    period: ContributionPeriod.Monthly,
+    moneyView: MoneyView.Future,
+  },
   formErrors: {},
   result: null,
 };
@@ -56,6 +60,12 @@ function payReducer(state: PayState, action: PayAction): PayState {
         formValues: { ...state.formValues, period: action.payload },
         result: null,
       };
+    case PayActionType.SetMoneyView:
+      // Only how the result reads changes, so it stays on screen
+      return {
+        ...state,
+        formValues: { ...state.formValues, moneyView: action.payload },
+      };
     default:
       return state;
   }
@@ -70,6 +80,14 @@ export const [PayYourselfFirstProvider, useRawPayState, useRawPayDispatch] =
  */
 export function usePeriod(): PayState["formValues"]["period"] {
   return useRawPayState().formValues.period;
+}
+
+/**
+ * Which money the results are shown in
+ * @returns Future money or today's money
+ */
+export function useMoneyView(): MoneyView {
+  return useRawPayState().formValues.moneyView;
 }
 
 /**

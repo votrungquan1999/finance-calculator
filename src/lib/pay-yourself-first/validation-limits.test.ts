@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { ContributionPeriod } from "../../app/calculators/investment/investment-calculator.type";
 import {
   type FormValues,
+  MoneyView,
   PayFieldId,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { validateFields } from "./validation";
@@ -23,6 +24,7 @@ function form(overrides: Partial<FormValues> = {}): FormValues {
     spendingAmount: "50000000",
     inflation: "0",
     period: ContributionPeriod.Monthly,
+    moneyView: MoneyView.Future,
     ...overrides,
   };
 }

@@ -11,6 +11,7 @@ export interface FormValues {
   spendingAmount?: string;
   inflation?: string;
   period: ContributionPeriod;
+  moneyView: MoneyView;
 }
 
 export interface PayField {
@@ -37,17 +38,24 @@ export interface ScheduleRow extends InvestmentResult {
   phase: Phase;
 }
 
-export interface PayCalculationResult {
-  solvedField: PayFieldId;
-  solvedValue: number;
-  outcome: PlanOutcome;
+/** The money a result shows, in one money view */
+export interface MoneyFigures {
   schedule: ScheduleRow[];
   potAtRetirement: number;
   /** Includes current savings */
   totalInvested: number;
   totalSpent: number;
   moneyLeft: number;
+}
+
+/** A solved plan; its own figures are future money */
+export interface PayCalculationResult extends MoneyFigures {
+  solvedField: PayFieldId;
+  solvedValue: number;
+  outcome: PlanOutcome;
   finalAge: number;
+  /** The same figures divided back to today's prices */
+  todaysMoney: MoneyFigures;
 }
 
 export interface SummaryItem {
@@ -78,6 +86,14 @@ export enum PlanOutcome {
   AlreadyEnough = "ALREADY_ENOUGH",
 }
 
+/** Which money the results are shown in */
+export enum MoneyView {
+  /** What the account will actually hold */
+  Future = "future",
+  /** Each year's amounts divided back to today's prices */
+  Today = "today",
+}
+
 export enum Phase {
   Saving = "Saving",
   Retired = "Retired",
@@ -88,6 +104,7 @@ export enum PayActionType {
   SetResult = "SET_RESULT",
   SetFormErrors = "SET_FORM_ERRORS",
   SetPeriod = "SET_PERIOD",
+  SetMoneyView = "SET_MONEY_VIEW",
 }
 
 /** Message to show under a field, keyed by the field it belongs to */
@@ -106,7 +123,8 @@ export type PayAction =
     }
   | { type: PayActionType.SetResult; payload: PayCalculationResult | null }
   | { type: PayActionType.SetFormErrors; payload: FormErrors }
-  | { type: PayActionType.SetPeriod; payload: ContributionPeriod };
+  | { type: PayActionType.SetPeriod; payload: ContributionPeriod }
+  | { type: PayActionType.SetMoneyView; payload: MoneyView };
 
 /** One ordered list drives the form, the calculation and the button */
 export const PAY_FIELDS: PayField[] = [

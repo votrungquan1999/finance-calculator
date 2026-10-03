@@ -6,6 +6,13 @@ import { useCalculationLogic } from "./hooks/pay-yourself-first.calculation";
 import { usePayResult } from "./pay-yourself-first.state";
 
 /**
+ * Wrapper for the display options under the fields
+ */
+export function OptionBlock({ children }: { children: ReactNode }) {
+  return <div className="space-y-2">{children}</div>;
+}
+
+/**
  * Wrapper for form fields with consistent spacing
  */
 export function FormFieldWrapper({ children }: { children: ReactNode }) {
@@ -28,6 +35,17 @@ export function FieldDescription({ children }: { children: ReactNode }) {
  */
 export function InputWithPeriod({ children }: { children: ReactNode }) {
   return <div className="grid grid-cols-[1fr_auto] gap-2">{children}</div>;
+}
+
+/**
+ * A switch with its label beside it
+ */
+export function SwitchRow({ children }: { children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[auto_1fr] items-center gap-2">
+      {children}
+    </div>
+  );
 }
 
 /**

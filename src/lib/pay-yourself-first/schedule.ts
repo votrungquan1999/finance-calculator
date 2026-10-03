@@ -30,7 +30,7 @@ export interface Schedule {
  * @param value - Amount to clean
  * @returns 0 for dust (including -0), otherwise the value unchanged
  */
-function clearDust(value: number): number {
+export function clearDust(value: number): number {
   return Math.abs(value) < 0.005 ? 0 : value;
 }
 

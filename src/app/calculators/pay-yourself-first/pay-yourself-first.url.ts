@@ -1,6 +1,10 @@
 import { ContributionPeriod } from "src/app/calculators/investment/investment-calculator.type";
 import { readNumber } from "src/lib/pay-yourself-first/validation";
-import { type FormValues, PAY_FIELDS } from "./pay-yourself-first.type";
+import {
+  type FormValues,
+  MoneyView,
+  PAY_FIELDS,
+} from "./pay-yourself-first.type";
 
 export type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -31,6 +35,7 @@ export function convertSearchParamsToFormValues(
     period:
       Object.values(ContributionPeriod).find((p) => p === period) ??
       ContributionPeriod.Monthly,
+    moneyView: MoneyView.Future,
   };
   for (const field of PAY_FIELDS) {
     const text = firstValue(searchParams, field.id);

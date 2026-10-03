@@ -5,6 +5,7 @@ import { formatPercentage } from "src/lib/calculations";
 import { useRawPayState } from "../pay-yourself-first.state";
 import {
   getFieldLabel,
+  MoneyView,
   PAY_FIELDS,
   type PayCalculationResult,
   PayFieldId,
@@ -96,28 +97,30 @@ export const useCalculationSummary = () => {
 
     const solvedLabel = `${getFieldLabel(solvedField, formValues.period)} (Calculated)`;
     const solvedTile = buildSolvedTile(solvedLabel, result);
+    const figures =
+      formValues.moneyView === MoneyView.Today ? result.todaysMoney : result;
 
     return [
       solvedTile,
       ...buildNoteTiles(result, formValues.period),
       {
         label: "Pot at retirement",
-        value: result.potAtRetirement,
+        value: figures.potAtRetirement,
         type: "currency",
       },
       {
         label: "Total invested",
-        value: result.totalInvested,
+        value: figures.totalInvested,
         type: "currency",
       },
       {
         label: "Total spent in retirement",
-        value: result.totalSpent,
+        value: figures.totalSpent,
         type: "currency",
       },
       {
         label: `Money left at ${result.finalAge}`,
-        value: result.moneyLeft,
+        value: figures.moneyLeft,
         type: "currency",
       },
     ];

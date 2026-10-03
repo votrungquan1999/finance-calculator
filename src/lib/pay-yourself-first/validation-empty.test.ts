@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { ContributionPeriod } from "../../app/calculators/investment/investment-calculator.type";
-import { PayFieldId } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
+import {
+  MoneyView,
+  PayFieldId,
+} from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { findEmptySolvableFields } from "./validation";
 
 describe("findEmptySolvableFields", () => {
@@ -15,6 +18,7 @@ describe("findEmptySolvableFields", () => {
       lifeExpectancy: "90",
       spendingAmount: "50000000",
       period: ContributionPeriod.Monthly,
+      moneyView: MoneyView.Future,
     });
 
     // Then only the two blank solvable fields are listed
