@@ -147,7 +147,7 @@ export const PAY_FIELDS: PayField[] = [
     label: "{period} Investment",
     description:
       "Amount you invest each period while working (leave empty to solve for this)",
-    placeholder: "10000000",
+    placeholder: "1000",
     solvable: true,
   },
   {
@@ -178,7 +178,7 @@ export const PAY_FIELDS: PayField[] = [
     label: "{period} Spending",
     description:
       "Amount you spend each period in retirement, in today's money (leave empty to solve for this)",
-    placeholder: "50000000",
+    placeholder: "4000",
     solvable: true,
   },
   {

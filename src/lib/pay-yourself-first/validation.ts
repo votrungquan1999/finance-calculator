@@ -56,7 +56,7 @@ export function readNumber(text: string): number | null {
  */
 function checkValue(fieldId: PayFieldId, text: string): string | null {
   const value = readNumber(text);
-  if (value === null) return "Must be a number, like 50,000,000";
+  if (value === null) return "Must be a number, like 50,000";
   if (value < 0) return "Must be 0 or more";
   if (AMOUNT_FIELDS.includes(fieldId) && value > MAX_AMOUNT)
     return `Must be ${MAX_AMOUNT.toLocaleString("en-US")} or less`;

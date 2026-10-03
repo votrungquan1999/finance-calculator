@@ -7,7 +7,7 @@ import {
   summaryValue,
 } from "./helpers";
 
-const NOT_A_NUMBER = "Must be a number, like 50,000,000";
+const NOT_A_NUMBER = "Must be a number, like 50,000";
 
 test.describe("A saver who types an invalid value is told which field is wrong", () => {
   test("flags text that is not a number under its field and calculates nothing", async ({

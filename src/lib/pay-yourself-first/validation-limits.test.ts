@@ -7,7 +7,7 @@ import {
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { validateFields } from "./validation";
 
-const NOT_A_NUMBER = "Must be a number, like 50,000,000";
+const NOT_A_NUMBER = "Must be a number, like 50,000";
 
 /**
  * Builds a form where every age and amount is fine, then applies the overrides.

@@ -123,3 +123,20 @@ test.describe("A saver never sees an old result that no longer matches the form"
     await expect(page.getByRole("table")).toBeVisible();
   });
 });
+
+test.describe("A saver sees dollar-sized examples in the empty fields", () => {
+  test("suggests 1000 to invest and 4000 to spend each month", async ({
+    page,
+  }) => {
+    // When a saver opens the calculator
+    await openCalculator(page);
+
+    // Then the money examples are sized in dollars, not millions
+    await expect(
+      page.getByRole("textbox", { name: /Investment/ }),
+    ).toHaveAttribute("placeholder", "1000");
+    await expect(
+      page.getByRole("textbox", { name: /Spending/ }),
+    ).toHaveAttribute("placeholder", "4000");
+  });
+});
