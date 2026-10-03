@@ -55,6 +55,7 @@ describe("solveRetirementAge", () => {
       contributionAmount: 4_581.11,
       spendingAmount: 2_390.04,
       annualReturn: 29.38,
+      inflation: 0,
     };
 
     // When solving for the retirement age

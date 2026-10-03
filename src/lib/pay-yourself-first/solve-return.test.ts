@@ -45,6 +45,7 @@ describe("solveReturn", () => {
       investment: INPUTS.contributionAmount,
       spending: INPUTS.spendingAmount,
       annualReturn: rate,
+      inflation: INPUTS.inflation,
       periodsPerYear: MONTHLY,
     });
 

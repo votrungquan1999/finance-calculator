@@ -4,6 +4,7 @@ import {
   PERIOD_DETAILS,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
 import { solvePlan } from "./plan";
+import { buildSchedule } from "./schedule";
 import { solveLifeExpectancy, solveRetirementAge } from "./solve-ages";
 import { solveInvestment, solveSpending } from "./solvers";
 import { randomPlan, STEP_1_INPUTS, seededRandom } from "./test-fixtures";
@@ -27,6 +28,43 @@ describe("solvePlan by period", () => {
       // And the last row is the age before life expectancy, ending at exactly 0
       expect(result.schedule.at(-1)?.age).toBe(89);
       expect(result.schedule.at(-1)?.totalValue).toBe(0);
+    },
+  );
+});
+
+/** Prices rising slower than, as fast as, and faster than the return (the last two leave no growth after inflation, or less than none) */
+const RETURN_AND_INFLATION = [
+  { annualReturn: 7, inflation: 4 },
+  { annualReturn: 7, inflation: 7 },
+  { annualReturn: 2, inflation: 4 },
+  { annualReturn: 0, inflation: 4 },
+];
+
+describe("investment with rising prices by period", () => {
+  it.each(PERIODS)(
+    "solves an investment whose schedule ends within $1 of 0 whether prices rise slower or faster than the return ($periodsPerYear a year)",
+    ({ periodsPerYear }) => {
+      for (const rates of RETURN_AND_INFLATION) {
+        // Given the reference plan at this return and inflation, solved for the investment in this period
+        const plan = { ...STEP_1_INPUTS, ...rates };
+        const investment = solveInvestment(plan, periodsPerYear);
+
+        // When the period-by-period schedule is built from it, before any noise snap
+        const { finalBalance } = buildSchedule({
+          currentAge: plan.currentAge,
+          retirementAge: plan.retirementAge,
+          endAge: plan.lifeExpectancy,
+          currentSavings: plan.currentSavings,
+          investment,
+          spending: plan.spendingAmount,
+          annualReturn: plan.annualReturn,
+          inflation: plan.inflation,
+          periodsPerYear,
+        });
+
+        // Then the formula and the schedule agree: the money runs out at life expectancy
+        expect(Math.abs(finalBalance)).toBeLessThan(1);
+      }
     },
   );
 });

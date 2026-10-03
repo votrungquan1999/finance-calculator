@@ -61,6 +61,7 @@ export const useCalculationLogic = () => {
       retirementAge: num(PayFieldId.RetirementAge),
       lifeExpectancy: num(PayFieldId.LifeExpectancy),
       spendingAmount: num(PayFieldId.SpendingAmount),
+      inflation: num(PayFieldId.Inflation),
     };
 
     try {

@@ -11,6 +11,7 @@ const STEP_1_SCHEDULE: ScheduleParams = {
   investment: 15_535_539.322543,
   spending: 50_000_000,
   annualReturn: 7,
+  inflation: 0,
   periodsPerYear: 12,
 };
 
@@ -28,6 +29,21 @@ describe("buildSchedule", () => {
     });
     expect(rows[240].interest).toBeCloseTo(46_916_780.21, 2);
     expect(rows[240].totalValue).toBeCloseTo(8_089_793_388.09, 2);
+  });
+
+  it("keeps spending flat within a year and raises it by the full inflation at each new year", () => {
+    // Given the reference plan's spending of 50,000,000 a month in today's money, with 4% inflation
+    const { rows } = buildSchedule({ ...STEP_1_SCHEDULE, inflation: 4 });
+
+    // Then all twelve months at age 50 spend 50,000,000 × 1.04^20
+    const atFifty = rows.filter((row) => row.age === 50);
+    expect(atFifty).toHaveLength(12);
+    for (const row of atFifty)
+      expect(row.contribution).toBeCloseTo(-109_556_157.15, 2);
+
+    // And the first month at age 51 spends one more year of price rises
+    expect(rows[252].age).toBe(51);
+    expect(rows[252].contribution).toBeCloseTo(-113_938_403.44, 2);
   });
 
   it("ends at exactly 0 on the last month, which shows the age during that month", () => {

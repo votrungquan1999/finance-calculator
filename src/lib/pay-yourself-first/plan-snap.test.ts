@@ -55,6 +55,7 @@ describe("solvePlan float-noise snap", () => {
       contributionAmount: 1_403_377.62,
       spendingAmount: 201_440_493.35,
       annualReturn: 0,
+      inflation: 0,
     };
 
     // When solving for the return

@@ -9,7 +9,7 @@ export const WEEKLY = 52;
 /** Periods per year for a yearly plan */
 export const YEARLY = 1;
 
-/** Age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000 a month */
+/** Age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000 a month, no inflation */
 export const STEP_1_INPUTS: PlanInputs = {
   currentAge: 30,
   currentSavings: 0,
@@ -18,6 +18,7 @@ export const STEP_1_INPUTS: PlanInputs = {
   retirementAge: 50,
   lifeExpectancy: 90,
   spendingAmount: 50_000_000,
+  inflation: 0,
 };
 
 /**

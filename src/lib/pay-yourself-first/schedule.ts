@@ -2,7 +2,7 @@ import {
   Phase,
   type ScheduleRow,
 } from "../../app/calculators/pay-yourself-first/pay-yourself-first.type";
-import { periodsBetween, ratePerPeriod } from "./solvers";
+import { periodsBetween, priceLevel, ratePerPeriod } from "./solvers";
 
 export interface ScheduleParams {
   currentAge: number;
@@ -12,6 +12,8 @@ export interface ScheduleParams {
   investment: number;
   spending: number;
   annualReturn: number;
+  /** Yearly price rise in percent; spending (in today's money) steps up by it each year */
+  inflation: number;
   periodsPerYear: number;
 }
 
@@ -56,8 +58,10 @@ export function buildSchedule(params: ScheduleParams): Schedule {
 
   for (let k = 0; k < totalPeriods; k++) {
     const saving = k < savingPeriods;
-    // Money in while saving, money out while retired
-    const money = saving ? params.investment : -params.spending;
+    // Money in while saving; money out while retired, at the prices of the row's year
+    const money = saving
+      ? params.investment
+      : -params.spending * priceLevel(params.inflation, Math.floor(k / ppy));
     // Deposits land at period end (no interest on them yet); withdrawals come out first
     const interest = saving ? balance * i : (balance + money) * i;
 

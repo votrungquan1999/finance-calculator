@@ -9,6 +9,7 @@ export interface FormValues {
   retirementAge?: string;
   lifeExpectancy?: string;
   spendingAmount?: string;
+  inflation?: string;
   period: ContributionPeriod;
 }
 
@@ -18,7 +19,7 @@ export interface PayField {
   label: string;
   description: string;
   placeholder: string;
-  /** Current age is always filled in, so it is never the value we solve for */
+  /** Current age and inflation are always filled in, so they are never the value we solve for */
   solvable: boolean;
 }
 
@@ -63,6 +64,7 @@ export enum PayFieldId {
   RetirementAge = "retirementAge",
   LifeExpectancy = "lifeExpectancy",
   SpendingAmount = "spendingAmount",
+  Inflation = "inflation",
 }
 
 /** How the solved value should be read */
@@ -157,9 +159,17 @@ export const PAY_FIELDS: PayField[] = [
     id: PayFieldId.SpendingAmount,
     label: "{period} Spending",
     description:
-      "Amount you spend each period in retirement (leave empty to solve for this)",
+      "Amount you spend each period in retirement, in today's money (leave empty to solve for this)",
     placeholder: "50000000",
     solvable: true,
+  },
+  {
+    id: PayFieldId.Inflation,
+    label: "Inflation (%)",
+    description:
+      "How much prices rise each year; your spending rises with them once a year",
+    placeholder: "4",
+    solvable: false,
   },
 ];
 

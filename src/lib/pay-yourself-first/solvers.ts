@@ -8,6 +8,8 @@ export interface PlanInputs {
   retirementAge: number;
   lifeExpectancy: number;
   spendingAmount: number;
+  /** Yearly price rise in percent; spending is in today's money and rises with it */
+  inflation: number;
 }
 
 /**
@@ -39,6 +41,16 @@ export function ratePerPeriod(
 }
 
 /**
+ * How much prices have grown after whole years of inflation; spending in year y costs this times today's amount.
+ * @param inflation - Yearly price rise in percent (4 for 4%)
+ * @param years - Whole years from today
+ * @returns Price level relative to today
+ */
+export function priceLevel(inflation: number, years: number): number {
+  return (1 + inflation / 100) ** years;
+}
+
+/**
  * Growth of 1 invested at the end of each of `n` periods: ((1+i)^n - 1) / i.
  * Uses expm1/log1p so tiny rates do not cancel to 0; at i = 0 it is simply n.
  * @param i - Rate per period
@@ -51,14 +63,31 @@ function growthFactor(i: number, n: number): number {
 }
 
 /**
- * Pot needed at the start of `m` periods to fund 1 withdrawn at the start of each: (1+i)(1-(1+i)^-m)/i.
- * @param i - Rate per period
- * @param m - Number of retired periods
+ * Pot needed at the start of `m` steps to fund 1 withdrawn at the start of each: (1+i)(1-(1+i)^-m)/i.
+ * @param i - Growth per step: a period's rate, or a year's growth after inflation (may be negative)
+ * @param m - Number of steps (periods or years)
  * @returns Present value of the unit annuity-due
  */
 function drawdownFactor(i: number, m: number): number {
   if (i === 0) return m;
   return (-Math.expm1(-m * Math.log1p(i)) * (1 + i)) / i;
+}
+
+/**
+ * A year's growth left after that year's price rise: (1+i)^n / (1+inflation) - 1. Negative when prices outrun the return.
+ * @param i - Rate per period
+ * @param periodsPerYear - Periods in one year (12 for monthly)
+ * @param inflation - Yearly price rise in percent
+ * @returns Yearly growth after inflation as a fraction
+ */
+function growthAfterInflation(
+  i: number,
+  periodsPerYear: number,
+  inflation: number,
+): number {
+  return Math.expm1(
+    periodsPerYear * Math.log1p(i) - Math.log1p(inflation / 100),
+  );
 }
 
 /**
@@ -102,18 +131,28 @@ export function potBuilt(
 }
 
 /**
- * Pot needed at retirement to pay the spending until life expectancy (spending comes out at period start).
- * @param inputs - Plan values (spending is used)
- * @param i - Rate per period
- * @param retiredPeriods - Number of retired periods
+ * Pot needed at retirement to pay the spending until life expectancy.
+ * Spending is in today's money and rises with prices once a year; it comes out at period start.
+ * @param inputs - Plan values (ages, return, spending and inflation are used)
+ * @param periodsPerYear - Periods in one year (12 for monthly)
  * @returns Pot needed at retirement
  */
-export function potNeeded(
-  inputs: PlanInputs,
-  i: number,
-  retiredPeriods: number,
-): number {
-  return inputs.spendingAmount * drawdownFactor(i, retiredPeriods);
+export function potNeeded(inputs: PlanInputs, periodsPerYear: number): number {
+  const i = ratePerPeriod(inputs.annualReturn, periodsPerYear);
+  const savingYears = inputs.retirementAge - inputs.currentAge;
+  const retiredYears = inputs.lifeExpectancy - inputs.retirementAge;
+  // Ages are whole years, so retirement starts on a price step and each retired year has one price
+  const firstYearSpending =
+    inputs.spendingAmount * priceLevel(inputs.inflation, savingYears);
+  // One year of draws at the year's start, then the years discounted by growth after each price rise
+  return (
+    firstYearSpending *
+    drawdownFactor(i, periodsPerYear) *
+    drawdownFactor(
+      growthAfterInflation(i, periodsPerYear, inputs.inflation),
+      retiredYears,
+    )
+  );
 }
 
 /**
@@ -127,10 +166,7 @@ export function solveInvestment(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): number {
-  const { i, savingPeriods, retiredPeriods } = planShape(
-    inputs,
-    periodsPerYear,
-  );
+  const { i, savingPeriods } = planShape(inputs, periodsPerYear);
 
   // No working periods means no deposits to size
   if (savingPeriods === 0)
@@ -141,7 +177,7 @@ export function solveInvestment(
   const savingsAtRetirement = inputs.currentSavings * (1 + i) ** savingPeriods;
 
   return (
-    (potNeeded(inputs, i, retiredPeriods) - savingsAtRetirement) /
+    (potNeeded(inputs, periodsPerYear) - savingsAtRetirement) /
     growthFactor(i, savingPeriods)
   );
 }
@@ -176,17 +212,14 @@ export function solveSavings(
   inputs: PlanInputs,
   periodsPerYear: number,
 ): number {
-  const { i, savingPeriods, retiredPeriods } = planShape(
-    inputs,
-    periodsPerYear,
-  );
+  const { i, savingPeriods } = planShape(inputs, periodsPerYear);
 
   const depositsAtRetirement =
     inputs.contributionAmount * growthFactor(i, savingPeriods);
 
   // Discount what the savings must supply back to today
   return (
-    (potNeeded(inputs, i, retiredPeriods) - depositsAtRetirement) /
+    (potNeeded(inputs, periodsPerYear) - depositsAtRetirement) /
     (1 + i) ** savingPeriods
   );
 }
@@ -199,11 +232,6 @@ export function solveSavings(
  * @returns Pot built minus pot needed, both measured at retirement
  */
 export function surplus(inputs: PlanInputs, periodsPerYear: number): number {
-  const { i, savingPeriods, retiredPeriods } = planShape(
-    inputs,
-    periodsPerYear,
-  );
-  return (
-    potBuilt(inputs, i, savingPeriods) - potNeeded(inputs, i, retiredPeriods)
-  );
+  const { i, savingPeriods } = planShape(inputs, periodsPerYear);
+  return potBuilt(inputs, i, savingPeriods) - potNeeded(inputs, periodsPerYear);
 }

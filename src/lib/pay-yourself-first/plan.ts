@@ -195,6 +195,7 @@ export function solvePlan(
     investment: plan.contributionAmount,
     spending: plan.spendingAmount,
     annualReturn: plan.annualReturn,
+    inflation: plan.inflation,
     periodsPerYear,
   });
 

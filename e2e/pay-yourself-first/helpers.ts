@@ -10,6 +10,7 @@ export interface PlanValues {
   retirementAge?: string;
   lifeExpectancy?: string;
   spendingAmount?: string;
+  inflation?: string;
 }
 
 /** Monthly, age 30, no savings, 7% return, retire at 50, live to 90, spend 50,000,000 */
